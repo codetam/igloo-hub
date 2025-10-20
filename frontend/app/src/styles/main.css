@@ -1,0 +1,64 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Roboto', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Champions League inspired gradient backgrounds */
+.cl-gradient {
+  background: linear-gradient(135deg, #001E40 0%, #00B2E3 100%);
+}
+
+.cl-gradient-reverse {
+  background: linear-gradient(135deg, #00B2E3 0%, #001E40 100%);
+}
+
+.cl-dark-gradient {
+  background: linear-gradient(180deg, #0A1628 0%, #1A2942 100%);
+}
+
+/* Gold accent text */
+.gold-text {
+  color: #FFD700;
+}
+
+/* Starball pattern background (subtle) */
+.starball-bg {
+  background-image: 
+    radial-gradient(circle at 20% 50%, rgba(0, 178, 227, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 50%, rgba(255, 215, 0, 0.1) 0%, transparent 50%);
+}
+
+/* Animation utilities */
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition: all 0.3s ease;
+}
+
+.slide-up-enter-from {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.slide-up-leave-to {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+/* Mobile responsiveness helpers */
+@media (max-width: 600px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+}
+
+@media (min-width: 601px) {
+  .hide-on-desktop {
+    display: none !important;
+  }
+}

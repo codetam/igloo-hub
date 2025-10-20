@@ -1,0 +1,16 @@
+services:  
+  main:
+    build:
+      target: dev
+    volumes:
+      - ../backend/main/app:/project/app
+      - ../logging.yaml:/logging/logging.yaml:ro
+    image: igloo-main:dev
+
+  frontend:
+    build:
+      target: dev
+    volumes:
+      - ../frontend/app:/app
+      - ../logging.yaml:/logging/logging.yaml:ro
+    image: igloo-frontend:dev

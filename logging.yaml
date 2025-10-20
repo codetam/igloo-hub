@@ -1,0 +1,46 @@
+version: 1
+disable_existing_loggers: false
+
+formatters:
+  default:
+    format: "[%(asctime)s][%(process)d][%(name)s][%(levelname)s] %(message)s"
+
+handlers:
+  console:
+    class: logging.StreamHandler
+    formatter: default
+    level: INFO
+
+loggers:
+  uvicorn:
+    handlers: [console]
+    level: INFO
+    propagate: false
+  uvicorn.error:
+    handlers: [console]
+    level: INFO
+    propagate: false
+  uvicorn.access:
+    handlers: [console]
+    level: INFO
+    propagate: false
+  fastapi:
+    handlers: [console]
+    level: INFO
+    propagate: false
+  celery:
+    handlers: [console]
+    level: INFO
+    propagate: false
+  celery.worker:
+    handlers: [console]
+    level: INFO
+    propagate: false
+  celery.task:
+    handlers: [console]
+    level: INFO
+    propagate: false
+
+root:
+  handlers: [console]
+  level: INFO

@@ -1,0 +1,100 @@
+services:  
+  main:
+    build:
+      context: ..
+      dockerfile: backend/main/Dockerfile
+    container_name: igloo-main
+    environment:
+      - POSTGRES_SERVER=db
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER?Variable not set}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      igloo-network:
+        aliases:
+          - main
+          - igloo-main
+
+  db:
+    image: postgres:12
+    container_name: igloo-db
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+    volumes:
+      - app-db-data:/var/lib/postgresql/data/pgdata
+    ports:
+      - '${POSTGRES_PORT}:${POSTGRES_PORT}'
+    env_file:
+      - .env
+    environment:
+      - PGDATA=/var/lib/postgresql/data/pgdata
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
+      - POSTGRES_USER=${POSTGRES_USER?Variable not set}
+      - POSTGRES_DB=${POSTGRES_DB?Variable not set}
+    networks:
+      igloo-network:
+        aliases:
+          - db
+          - igloo-db
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: frontend/Dockerfile
+    container_name: igloo-frontend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      igloo-network:
+        aliases:
+          - frontend
+          - igloo-frontend
+
+  caddy:
+    image: caddy:2.10.0
+    container_name: igloo-caddy
+    ports:
+      - "8000:80"
+      - "2019:2019"
+    volumes:
+      - ../caddy/conf:/etc/caddy
+      - ../caddy/site:/srv
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      npmnetwork:
+        aliases:
+          - caddy
+          - igloo-caddy
+      igloo-network:
+        aliases:
+          - caddy
+          - igloo-caddy
+
+volumes:
+  app-db-data:
+  caddy_data:
+  caddy_config:
+
+networks:
+  igloo-network:
+    name: igloo-network
+    external: true
+  npmnetwork:
+    external: true
