@@ -55,6 +55,9 @@ class Game(SQLModel, table=True):
     stadium_id: uuid.UUID = Field(foreign_key="stadium.id")
     notes: Optional[str] = None  # For funny moments or whatever
     
+    started_at: Optional[datetime] = None
+    ended_at: Optional[datetime] = None
+    
     stadium: Stadium = Relationship(back_populates="games")
     game_players: list["GamePlayer"] = Relationship(back_populates="game")
     goals: list["Goal"] = Relationship(back_populates="game")

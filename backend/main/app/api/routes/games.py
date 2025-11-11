@@ -3,7 +3,7 @@ from sqlmodel import Session, select
 from sqlalchemy.orm import selectinload
 from typing import Optional
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.models.model import Game, GamePlayer, Goal, Stadium, Player
 from app.api.deps import get_db
@@ -24,6 +24,42 @@ def create_game(
 ):
     """Create a new game"""
     game = Game(stadium_id=stadium_id, date=date, notes=notes)
+    session.add(game)
+    session.commit()
+    session.refresh(game)
+    return game
+
+@router.put("/{game_id}/start", response_model=GameRead)
+def start_game(game_id: uuid.UUID, session: Session = Depends(get_db)):
+    """Mark a game as started (set started_at to current UTC time)"""
+    game = session.get(Game, game_id)
+    if not game:
+        raise HTTPException(status_code=404, detail="Game not found")
+
+    if game.started_at:
+        raise HTTPException(status_code=400, detail="Game has already started")
+
+    game.started_at = datetime.now(timezone.utc)
+    session.add(game)
+    session.commit()
+    session.refresh(game)
+    return game
+
+
+@router.put("/{game_id}/end", response_model=GameRead)
+def end_game(game_id: uuid.UUID, session: Session = Depends(get_db)):
+    """Mark a game as ended (set ended_at to current UTC time)"""
+    game = session.get(Game, game_id)
+    if not game:
+        raise HTTPException(status_code=404, detail="Game not found")
+
+    if not game.started_at:
+        raise HTTPException(status_code=400, detail="Game has not started yet")
+
+    if game.ended_at:
+        raise HTTPException(status_code=400, detail="Game has already ended")
+
+    game.ended_at = datetime.now(timezone.utc)
     session.add(game)
     session.commit()
     session.refresh(game)

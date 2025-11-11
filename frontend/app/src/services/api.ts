@@ -45,6 +45,8 @@ export const gamesApi = {
     api.post(`/games/${gameId}/goals`, null, { params: data }),
   getScore: (gameId: string) => api.get<GameScore>(`/games/${gameId}/score`),
   getPlayers: (gameId: string) => api.get<TeamPlayers>(`/games/${gameId}/players`),
+  startGame: (gameId: string) => api.put<GameDetail>(`/games/${gameId}/start`),
+  endGame: (gameId: string) => api.put<GameDetail>(`/games/${gameId}/end`),
 }
 
 // Stadiums

@@ -99,3 +99,19 @@ export function dateTimeLocalToUTC(dateTimeLocal: string): string {
   const utc = toUTC(date)
   return utc.toISOString()
 }
+
+export function parseIsoToUtcPlus2(isoString: string) {
+  // Ensure input is valid
+  if (!isoString) throw new Error("ISO string required")
+
+  // Some ISO strings (like yours) lack the 'Z' or offset — assume UTC
+  const normalized = isoString.endsWith('Z') ? isoString : isoString + 'Z'
+
+  // Parse as UTC
+  const date = new Date(normalized)
+
+  // Add +2 hours (in milliseconds)
+  const utcPlus2 = new Date(date.getTime())
+
+  return utcPlus2
+}

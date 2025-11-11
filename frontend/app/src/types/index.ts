@@ -27,6 +27,8 @@ export interface GameListItem {
   date: string
   stadium_id: string
   notes?: string
+  started_at?: string
+  ended_at?: string
 }
 
 // Game detail response (full data with nested objects)
@@ -36,6 +38,8 @@ export interface GameDetail {
   notes?: string
   stadium: Stadium
   goals: Goal[]
+  started_at?: string
+  ended_at?: string
 }
 
 // Player in game context (with stats)

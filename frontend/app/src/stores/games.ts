@@ -142,6 +142,36 @@ export const useGamesStore = defineStore('games', () => {
     }
   }
 
+  async function startGame(id: string) {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await gamesApi.startGame(id)
+      currentGame.value = response.data
+    } catch (e) {
+      error.value = 'Failed to start game'
+      console.error(e)
+      throw e
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function endGame(id: string) {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await gamesApi.endGame(id)
+      currentGame.value = response.data
+    } catch (e) {
+      error.value = 'Failed to end game'
+      console.error(e)
+      throw e
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     games,
     currentGame,
@@ -157,5 +187,7 @@ export const useGamesStore = defineStore('games', () => {
     addPlayerToGame,
     recordGoal,
     deleteGame,
+    startGame,
+    endGame,
   }
 })

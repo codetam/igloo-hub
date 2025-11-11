@@ -1,10 +1,5 @@
 <template>
-  <v-card
-    :to="{ name: 'match-detail', params: { id: game.id } }"
-    class="match-card"
-    elevation="2"
-    hover
-  >
+  <v-card :to="{ name: 'match-detail', params: { id: game.id } }" class="match-card" elevation="2" hover>
     <v-card-text class="pa-4">
       <!-- Date and Stadium -->
       <div class="d-flex align-center mb-3">
@@ -36,11 +31,7 @@
 
       <!-- Winner Badge -->
       <div v-if="winner" class="text-center mt-3">
-        <v-chip
-          :color="winner === 1 ? 'secondary' : 'accent'"
-          size="small"
-          prepend-icon="mdi-trophy"
-        >
+        <v-chip :color="winner === 1 ? 'secondary' : 'accent'" size="small" prepend-icon="mdi-trophy">
           Team {{ winner }} Vince
         </v-chip>
       </div>

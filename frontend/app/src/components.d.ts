@@ -17,6 +17,7 @@ declare module 'vue' {
     LoadingSpinner: typeof import('./components/common/LoadingSpinner.vue')['default']
     MatchCard: typeof import('./components/match/MatchCard.vue')['default']
     MatchScoreboard: typeof import('./components/match/MatchScoreboard.vue')['default']
+    MatchTimeline: typeof import('./components/match/MatchTimeline.vue')['default']
     PlayerCard: typeof import('./components/player/PlayerCard.vue')['default']
     PlayerSearchDialog: typeof import('./components/player/PlayerSearchDialog.vue')['default']
     PlayerStatsCard: typeof import('./components/player/PlayerStatsCard.vue')['default']

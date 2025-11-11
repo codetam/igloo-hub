@@ -69,6 +69,8 @@ class GameRead(BaseModel):
     notes: Optional[str] = None
     stadium: Optional[StadiumRead] = None
     goals: List[GoalRead] = []
+    started_at: Optional[datetime] = None
+    ended_at: Optional[datetime] = None
 
     class Config:
         orm_mode = True

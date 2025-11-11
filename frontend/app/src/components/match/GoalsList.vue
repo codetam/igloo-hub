@@ -2,7 +2,7 @@
   <v-card elevation="3">
     <v-card-title class="pa-4">
       <v-icon class="mr-2" color="accent">mdi-soccer</v-icon>
-      Timeline Goal
+      Goal
       <v-chip size="small" class="ml-2">{{ goals.length }}</v-chip>
     </v-card-title>
 
@@ -10,12 +10,8 @@
 
     <v-card-text class="pa-4">
       <v-timeline side="end" truncate-line="both" density="compact">
-        <v-timeline-item
-          v-for="goal in sortedGoals"
-          :key="goal.id"
-          :dot-color="goal.team === 1 ? 'secondary' : 'accent'"
-          size="small"
-        >
+        <v-timeline-item v-for="goal in sortedGoals" :key="goal.id"
+          :dot-color="goal.team === 1 ? 'secondary' : 'accent'" size="small">
           <template v-slot:opposite>
             <div class="text-caption">
               {{ formatGoalMinute(goal.minute) }}
@@ -25,11 +21,7 @@
           <v-card elevation="2" class="goal-card">
             <v-card-text class="pa-3">
               <div class="d-flex align-center mb-1">
-                <v-chip
-                  :color="goal.team === 1 ? 'secondary' : 'accent'"
-                  size="x-small"
-                  class="mr-2"
-                >
+                <v-chip :color="goal.team === 1 ? 'secondary' : 'accent'" size="x-small" class="mr-2">
                   Team {{ goal.team }}
                 </v-chip>
                 <v-icon size="16" class="mr-1">mdi-soccer</v-icon>
@@ -72,16 +64,16 @@ const sortedGoals = computed(() => {
 
 function formatGoalMinute(goalTime?: string): string {
   if (!goalTime) return '-'
-  
+
   const gameStart = new Date(props.gameStartTime)
   const goalMoment = new Date(goalTime)
-  
+
   // Calculate difference in minutes
   const diffMs = goalMoment.getTime() - gameStart.getTime()
   const diffMinutes = Math.floor(diffMs / 60000)
-  
+
   if (diffMinutes < 0) return '0\''
-  
+
   return `${diffMinutes}'`
 }
 </script>
