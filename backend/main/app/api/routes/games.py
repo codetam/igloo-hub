@@ -19,11 +19,10 @@ router = APIRouter(
 def create_game(
     stadium_id: uuid.UUID,
     date: datetime,
-    notes: Optional[str] = None,
     session: Session = Depends(get_db)
 ):
     """Create a new game"""
-    game = Game(stadium_id=stadium_id, date=date, notes=notes)
+    game = Game(stadium_id=stadium_id, date=date)
     session.add(game)
     session.commit()
     session.refresh(game)

@@ -17,7 +17,7 @@ with open(logging_config_path, "r") as f:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    init_db()
+    reset_db()
     yield
     logging.info("FastAPI shutdown complete")
 
