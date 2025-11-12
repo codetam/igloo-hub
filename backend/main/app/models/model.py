@@ -4,10 +4,8 @@ from typing import Optional, TYPE_CHECKING
 import uuid
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 
-from app.models.schema import ScoreBoard
-
 if TYPE_CHECKING:
-    from typing import List
+    from typing import list
 
 
 class Stadium(SQLModel, table=True):
@@ -59,12 +57,7 @@ class Game(SQLModel, table=True):
     
     stadium: "Stadium" = Relationship(back_populates="games")
     game_players: list["GamePlayer"] = Relationship(back_populates="game")
-    goals: List["Goal"] = Relationship(back_populates="game")
-    
-    def get_scoreboard(self):
-        home_goals = sum(1 for goal in self.goals if goal.team_id == self.home_team_id)
-        away_goals = sum(1 for goal in self.goals if goal.team_id == self.away_team_id)
-        return ScoreBoard(home=home_goals, away=away_goals)
+    goals: list["Goal"] = Relationship(back_populates="game")
 
 class GamePlayer(SQLModel, table=True):
     """Links players to games and assigns them to a team"""

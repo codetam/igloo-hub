@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, List
+from typing import Literal, Optional, List
 import uuid
 from pydantic import BaseModel, computed_field
 
@@ -10,6 +10,13 @@ class StadiumRead(BaseModel):
     id: uuid.UUID
     name: str
     address: Optional[str] = None
+
+# ==========================
+# Team
+# ==========================
+class TeamRead(BaseModel):
+    id: uuid.UUID
+    name: Optional[str]
 
 # ==========================
 # Players
@@ -35,32 +42,29 @@ class PlayerStats(BaseModel):
     def goals_per_game(self) -> int:
         return round(self.total_goals / self.games_played, 2) if self.games_played > 0 else 0
 
-class GamePlayerRead(BaseModel):
-    player: PlayerRead
+class GamePlayerStats(BaseModel):
+    game_id: int
+    date: datetime
+    stadium: str
+    team: Literal['home', 'away']
+    score: str
+    result: Literal['win', 'loss', 'draw']
     goals: int
     assists: int
-           
-class GamePlayersRead(BaseModel):
-    game_id: uuid.UUID
-    team_1: List[GamePlayerRead]
-    team_2: List[GamePlayerRead]
 
 # ==========================
 # Score
 # ==========================
 class GameScore(BaseModel):
-    game_id: uuid.UUID
-    team_1: int
-    team_2: int
-    winner: Optional[int] = None
-    status: str
-        
+    home_team: int
+    away_team: int
+
 # ==========================
 # Game
 # ==========================
 class GoalRead(BaseModel):
     id: uuid.UUID
-    team: int
+    team_id: uuid.UUID
     minute: Optional[datetime] = None
     scorer: Optional[PlayerRead] = None
     assister: Optional[PlayerRead] = None
@@ -68,22 +72,28 @@ class GoalRead(BaseModel):
 class GameRead(BaseModel):
     id: uuid.UUID
     date: datetime
-    notes: Optional[str] = None
-    stadium: Optional[StadiumRead] = None
-    goals: List[GoalRead] = []
     started_at: Optional[datetime] = None
     ended_at: Optional[datetime] = None
-    
-class ScoreBoard(BaseModel):
-    home: int
-    away: int
+    home_team_id: uuid.UUID
+    away_team_id: uuid.UUID
 
-class GamePlayerStats(BaseModel):
-    game_id: int
-    date: datetime
-    stadium: str
-    team: str
-    score: str
-    result: str
-    goals: int
-    assists: int
+    stadium: Optional[StadiumRead] = None
+    goals: List[GoalRead] = []
+
+    @computed_field
+    @property
+    def status(self) -> Literal['not_started', 'started', 'ended']:
+        if not self.started_at:
+            return 'not_started'
+        if not self.ended_at:
+            return 'started'
+        return 'ended'
+    
+    @computed_field
+    @property
+    def score(self) -> GameScore:
+        home_team = sum(1 for goal in self.goals if goal.team_id == self.home_team_id)
+        away_team = sum(1 for goal in self.goals if goal.team_id == self.away_team_id)
+        return GameScore(home_team=home_team, away_team=away_team)
+    
+# TODO: add in gameRead home {id, players} and away {id, players}

@@ -5,7 +5,7 @@ from typing import Optional
 import uuid
 from datetime import datetime, timezone
 
-from app.models.model import Game, GamePlayer, Goal, Stadium, Player
+from app.models.model import Game, GamePlayer, Goal, Stadium, Player, Team
 from app.api.deps import get_db
 from app.models.schema import GameRead
 
@@ -15,18 +15,21 @@ router = APIRouter(
 )
 
 
-@router.post("", response_model=Game)
+@router.post("", response_model=GameRead)
 def create_game(
     stadium_id: uuid.UUID,
     date: datetime,
     session: Session = Depends(get_db)
 ):
     """Create a new game"""
-    game = Game(stadium_id=stadium_id, date=date)
+    home_team = Team()
+    away_team = Team()
+    game = Game(stadium_id=stadium_id, date=date, 
+                home_team=home_team.id, away_team=away_team.id)
     session.add(game)
     session.commit()
     session.refresh(game)
-    return game
+    return GameRead(**game)
 
 @router.put("/{game_id}/start", response_model=GameRead)
 def start_game(game_id: uuid.UUID, session: Session = Depends(get_db)):
@@ -42,7 +45,7 @@ def start_game(game_id: uuid.UUID, session: Session = Depends(get_db)):
     session.add(game)
     session.commit()
     session.refresh(game)
-    return game
+    return GameRead(**game)
 
 
 @router.put("/{game_id}/end", response_model=GameRead)
@@ -62,30 +65,19 @@ def end_game(game_id: uuid.UUID, session: Session = Depends(get_db)):
     session.add(game)
     session.commit()
     session.refresh(game)
-    return game
+    return GameRead(**game)
 
 @router.get("/{game_id}", response_model=GameRead)
 def get_game(game_id: uuid.UUID, session: Session = Depends(get_db)):
     """Return one game with nested stadium, goals, and players"""
-    statement = (
-        select(Game)
-        .where(Game.id == game_id)
-        .options(
-            selectinload(Game.stadium),
-            selectinload(Game.goals).selectinload(Goal.scorer),
-            selectinload(Game.goals).selectinload(Goal.assister),
-            selectinload(Game.game_players).selectinload(GamePlayer.player),
-        )
-    )
-
-    game = session.exec(statement).first()
+    game = session.get(Game, game_id)
     if not game:
         raise HTTPException(status_code=404, detail="Game not found")
 
-    return game
+    return GameRead(**game)
 
 
-@router.get("", response_model=list[Game])
+@router.get("", response_model=list[GameRead])
 def list_games(
     skip: int = 0,
     limit: int = 20,
@@ -94,37 +86,35 @@ def list_games(
     """List all games"""
     statement = select(Game).order_by(Game.date.desc()).offset(skip).limit(limit)
     games = session.exec(statement).all()
-    return games
+    return [GameRead(**game) for game in games]
 
 
 @router.post("/{game_id}/players")
 def add_player_to_game(
     game_id: uuid.UUID,
     player_id: uuid.UUID,
-    team: int,
+    team_id: uuid.UUID,
     session: Session = Depends(get_db)
 ):
-    """Add a player to a game on a specific team (1 or 2)"""
+    """Add a player to a game on a specific team"""
     game = session.get(Game, game_id)
     player = session.get(Player, player_id)
+    team = session.get(Team, team_id)
     
-    if not game or not player:
+    if not game or not player or not team:
         raise HTTPException(status_code=404, detail="Game or Player not found")
-    
-    if team not in [1, 2]:
-        raise HTTPException(status_code=400, detail="Team must be 1 or 2")
-    
-    game_player = GamePlayer(game_id=game_id, player_id=player_id, team=team)
+
+    game_player = GamePlayer(game_id=game_id, player_id=player_id, team_id=team_id)
     session.add(game_player)
     session.commit()
-    return {"message": f"{player.name} added to team {team}"}
+    return {"message": f"{player.name} added to team {team_id}"}
 
 
 @router.post("/{game_id}/goals")
 def add_goal(
     game_id: uuid.UUID,
     scorer_id: uuid.UUID,
-    team: int,
+    team_id: uuid.UUID,
     assister_id: Optional[uuid.UUID] = None,
     minute: Optional[datetime] = None,
     session: Session = Depends(get_db)
@@ -136,12 +126,12 @@ def add_goal(
     if not game or not scorer:
         raise HTTPException(status_code=404, detail="Game or Player not found")
     
-    if team not in [1, 2]:
-        raise HTTPException(status_code=400, detail="Team must be 1 or 2")
+    if team_id not in game.home_team_id and team_id not in game.away_team_id:
+        raise HTTPException(status_code=400, detail="Team must be participating")
     
     goal = Goal(
         game_id=game_id,
-        team=team,
+        team_id=team_id,
         scorer_id=scorer_id,
         assister_id=assister_id,
         minute=minute
@@ -149,26 +139,6 @@ def add_goal(
     session.add(goal)
     session.commit()
     return {"message": f"Goal recorded for {scorer.name}"}
-
-
-@router.get("/{game_id}/score")
-def get_game_score(game_id: uuid.UUID, session: Session = Depends(get_db)):
-    """Get the current score of a game"""
-    game = session.get(Game, game_id)
-    if not game:
-        raise HTTPException(status_code=404, detail="Game not found")
-    
-    score = game.get_score()
-    winner = game.get_winner()
-    
-    return {
-        "game_id": game_id,
-        "team_1": score[0],
-        "team_2": score[1],
-        "winner": winner,
-        "status": "draw" if winner is None else f"team_{winner}_wins"
-    }
-
 
 @router.get("/{game_id}/players")
 def get_game_players(game_id: uuid.UUID, session: Session = Depends(get_db)):

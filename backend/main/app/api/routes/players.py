@@ -3,9 +3,9 @@ from sqlmodel import Session, select
 from typing import Optional
 import uuid
 
-from app.models.model import Game, GamePlayer, Goal, Stadium, Player
+from app.models.model import Player
 from app.api.deps import get_db
-from app.models.schema import GamePlayerStats, PlayerRead, PlayerStats
+from app.models.schema import GamePlayerStats, GameRead, PlayerRead, PlayerStats
 
 router = APIRouter(
     prefix="/api/players",
@@ -51,7 +51,7 @@ def list_players(
 @router.get("/{player_id}/stats", response_model=PlayerStats)
 def get_player_stats(player_id: uuid.UUID, session: Session = Depends(get_db)):
     """Get overall stats for a player across all games"""
-    player = session.get(Player, player_id)
+    player: Player = session.get(Player, player_id)
     if not player:
         raise HTTPException(status_code=404, detail="Player not found")
     
@@ -64,11 +64,11 @@ def get_player_stats(player_id: uuid.UUID, session: Session = Depends(get_db)):
         game = game_player.game
         player_team_id = game_player.team_id
         
-        scoreboard = game.get_scoreboard()
+        game = GameRead(**game)
         
-        if player_team_id == game.home_team_id and scoreboard.home > scoreboard.away:
+        if player_team_id == game.home_team_id and game.score.home > game.score.away:
             wins += 1
-        elif player_team_id == game.away_team_id and scoreboard.away > scoreboard.home:
+        elif player_team_id == game.away_team_id and game.score.away > game.score.home:
             wins += 1
     
     return PlayerStats(id=player_id, name=player.name, nickname=player.nickname,
