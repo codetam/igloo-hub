@@ -5,14 +5,14 @@ import uuid
 
 from app.models.model import Player
 from app.api.deps import get_db
-from app.models.schema import GamePlayerStats, GlobalPlayerStats, PlayerRead, get_gameplayer_stats, get_player_stats
+from app.models.schema import GamePlayerStats, GlobalPlayerStats, PlayerCreate, PlayerRead, get_gameplayer_stats, get_player_stats
 
 router = APIRouter(
     prefix="/api/players",
     tags=["players"],
 )
 
-@router.get("/search/by-name", response_model=PlayerRead)
+@router.get("/search/by-name", response_model=list[PlayerRead])
 def search_players_by_name(
     name: str,
     session: Session = Depends(get_db)
@@ -20,7 +20,7 @@ def search_players_by_name(
     """Search players by name (case-insensitive partial match)"""
     statement = select(Player).where(Player.name.ilike(f"%{name}%"))
     players = session.exec(statement).all()
-    return [PlayerRead(**player) for player in players]
+    return [PlayerRead.model_validate(player) for player in players]
 
 
 @router.get("/{player_id}/games", response_model=list[GamePlayerStats])
@@ -81,15 +81,14 @@ def delete_player(player_id: uuid.UUID, session: Session = Depends(get_db)):
     session.commit()
     return {"message": "Player deleted"}
 
-
+    
 @router.post("", response_model=PlayerRead)
 def create_player(
-    name: str,
-    nickname: Optional[str] = None,
+    player_data: PlayerCreate,
     session: Session = Depends(get_db)
 ):
     """Create a new player"""
-    player = Player(name=name, nickname=nickname)
+    player = Player(name=player_data.name, nickname=player_data.nickname)
     session.add(player)
     session.commit()
     session.refresh(player)

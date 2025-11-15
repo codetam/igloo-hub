@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Literal, Optional, List
 import uuid
-from pydantic import BaseModel, computed_field
+from pydantic import BaseModel, ConfigDict, computed_field
 from sqlmodel import Session
 
 from app.models.model import GamePlayer, Player
@@ -9,13 +9,22 @@ from app.models.model import GamePlayer, Player
 # ==========================
 # PLAYER
 # ==========================
+
+class PlayerCreate(BaseModel):
+    name: str
+    nickname: Optional[str] = None
+    
 class PlayerRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
     id: uuid.UUID
     name: str
     nickname: Optional[str] = None
     profile: Optional[str] = None
     
 class GlobalPlayerStats(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
     id: uuid.UUID
     name: str
     nickname: Optional[str] = None
@@ -56,6 +65,8 @@ def get_player_stats(player: Player) -> GlobalPlayerStats:
     )
 
 class GamePlayerStats(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
     game_id: int
     date: datetime
     stadium: str
@@ -95,7 +106,13 @@ def get_gameplayer_stats(gp: GamePlayer) -> GamePlayerStats:
 # ==========================
 # STADIUM
 # ==========================
+class StadiumCreate(BaseModel):
+    name: str
+    address: Optional[str] = None
+    
 class StadiumRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
     id: uuid.UUID
     name: str
     address: Optional[str] = None
@@ -104,10 +121,14 @@ class StadiumRead(BaseModel):
 # Score
 # ==========================
 class GameScore(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
     home_team: int
     away_team: int
 
 class GoalRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
     id: uuid.UUID
     team_id: uuid.UUID
     minute: Optional[datetime] = None
@@ -118,6 +139,8 @@ class GoalRead(BaseModel):
 # TEAM
 # ==========================
 class GamePlayerTeamRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
     player: PlayerRead
     @computed_field
     @property
@@ -133,15 +156,33 @@ class GamePlayerTeamRead(BaseModel):
         return self.get_assists()
 
 class GameTeamRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
     id: uuid.UUID
-    name: Optional[str]
+    name: Optional[str] = None
     players: list[GamePlayerTeamRead]
     
 # ==========================
 # GAME
 # ==========================
 
+class GameCreate(BaseModel):
+    stadium_id: uuid.UUID
+    date: datetime
+    
+class GamePlayerCreate(BaseModel):
+    player_id: uuid.UUID
+    team_id: uuid.UUID
+    
+class GoalCreate(BaseModel):
+    scorer_id: uuid.UUID
+    team_id: uuid.UUID
+    assister_id: Optional[uuid.UUID] = None
+    minute: Optional[datetime] = None
+    
 class GameRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
     id: uuid.UUID
     date: datetime
     started_at: Optional[datetime] = None
