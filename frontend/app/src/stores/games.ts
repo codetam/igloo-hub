@@ -1,21 +1,11 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { gamesApi } from '@/services/api'
-import type {
-  GameListItem,
-  GameDetail,
-  GameScore,
-  TeamPlayers,
-  CreateGameRequest,
-  AddPlayerToGameRequest,
-  RecordGoalRequest,
-} from '@/types'
+import type { Game, GameCreate, GoalCreate } from '@/types'
 
 export const useGamesStore = defineStore('games', () => {
-  const games = ref<GameListItem[]>([])
-  const currentGame = ref<GameDetail | null>(null)
-  const currentGameScore = ref<GameScore | null>(null)
-  const currentGamePlayers = ref<TeamPlayers | null>(null)
+  const games = ref<Game[]>([])
+  const currentGame = ref<Game | null>(null)
   const loading = ref(false)
   const error = ref<string | null>(null)
 
@@ -47,35 +37,7 @@ export const useGamesStore = defineStore('games', () => {
     }
   }
 
-  async function fetchGameScore(id: string) {
-    loading.value = true
-    error.value = null
-    try {
-      const response = await gamesApi.getScore(id)
-      currentGameScore.value = response.data
-    } catch (e) {
-      error.value = 'Failed to fetch game score'
-      console.error(e)
-    } finally {
-      loading.value = false
-    }
-  }
-
-  async function fetchGamePlayers(id: string) {
-    loading.value = true
-    error.value = null
-    try {
-      const response = await gamesApi.getPlayers(id)
-      currentGamePlayers.value = response.data
-    } catch (e) {
-      error.value = 'Failed to fetch game players'
-      console.error(e)
-    } finally {
-      loading.value = false
-    }
-  }
-
-  async function createGame(data: CreateGameRequest) {
+  async function createGame(data: GameCreate) {
     loading.value = true
     error.value = null
     try {
@@ -91,13 +53,13 @@ export const useGamesStore = defineStore('games', () => {
     }
   }
 
-  async function addPlayerToGame(gameId: string, data: AddPlayerToGameRequest) {
+  async function addPlayerToGame(gameId: string, playerId: string, teamId: string) {
     loading.value = true
     error.value = null
     try {
-      await gamesApi.addPlayer(gameId, data)
-      // Refresh game players
-      await fetchGamePlayers(gameId)
+      await gamesApi.addPlayer(gameId, playerId, teamId)
+      // Refresh game to get updated player list
+      await fetchGameById(gameId)
     } catch (e) {
       error.value = 'Failed to add player to game'
       console.error(e)
@@ -107,17 +69,13 @@ export const useGamesStore = defineStore('games', () => {
     }
   }
 
-  async function recordGoal(gameId: string, data: RecordGoalRequest) {
+  async function recordGoal(gameId: string, data: GoalCreate) {
     loading.value = true
     error.value = null
     try {
       await gamesApi.recordGoal(gameId, data)
-      // Refresh game data
-      await Promise.all([
-        fetchGameScore(gameId),
-        fetchGamePlayers(gameId),
-        fetchGameById(gameId),
-      ])
+      // Refresh game to get updated score and goals
+      await fetchGameById(gameId)
     } catch (e) {
       error.value = 'Failed to record goal'
       console.error(e)
@@ -148,6 +106,11 @@ export const useGamesStore = defineStore('games', () => {
     try {
       const response = await gamesApi.startGame(id)
       currentGame.value = response.data
+      // Update in the list as well
+      const index = games.value.findIndex(g => g.id === id)
+      if (index !== -1) {
+        games.value[index] = response.data
+      }
     } catch (e) {
       error.value = 'Failed to start game'
       console.error(e)
@@ -163,6 +126,11 @@ export const useGamesStore = defineStore('games', () => {
     try {
       const response = await gamesApi.endGame(id)
       currentGame.value = response.data
+      // Update in the list as well
+      const index = games.value.findIndex(g => g.id === id)
+      if (index !== -1) {
+        games.value[index] = response.data
+      }
     } catch (e) {
       error.value = 'Failed to end game'
       console.error(e)
@@ -175,14 +143,10 @@ export const useGamesStore = defineStore('games', () => {
   return {
     games,
     currentGame,
-    currentGameScore,
-    currentGamePlayers,
     loading,
     error,
     fetchGames,
     fetchGameById,
-    fetchGameScore,
-    fetchGamePlayers,
     createGame,
     addPlayerToGame,
     recordGoal,

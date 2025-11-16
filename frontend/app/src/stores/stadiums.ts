@@ -37,11 +37,11 @@ export const useStadiumsStore = defineStore('stadiums', () => {
     }
   }
 
-  async function createStadium(name: string, address?: string) {
+  async function createStadium(data: { name: string; address?: string }) {
     loading.value = true
     error.value = null
     try {
-      const response = await stadiumsApi.create(name, address)
+      const response = await stadiumsApi.create(data)
       stadiums.value.push(response.data)
       return response.data
     } catch (e) {

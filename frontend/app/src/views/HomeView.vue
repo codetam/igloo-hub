@@ -41,7 +41,7 @@
 
             <EmptyState v-else-if="recentGames.length === 0" icon="mdi-soccer-field" title="Non ci sono ancora match"
                 message="Crea il tuo primo match!" action-text="Crea Partita"
-                @action="router.push({ name: 'create-match' })" />
+                @action="router.push({ name: 'create-match' as any })" />
 
             <div v-else>
                 <MatchCard v-for="game in recentGames" :key="game.id" :game="game" class="mb-3" />
@@ -59,9 +59,9 @@
 
             <LoadingSpinner v-if="playersStore.loading" message="Caricamento..." />
 
-            <EmptyState v-else-if="playersStore.players.length === 0" icon="mdi-account-group" title="Non ci sono giocatori"
-                message="Aggiungi il tuo primo giocatore!" action-text="Aggiungi Giocatore"
-                @action="router.push({ name: 'create-player' })" />
+            <EmptyState v-else-if="playersStore.players.length === 0" icon="mdi-account-group"
+                title="Non ci sono giocatori" message="Aggiungi il tuo primo giocatore!"
+                action-text="Aggiungi Giocatore" @action="router.push({ name: 'create-player' as any })" />
 
             <v-row v-else>
                 <v-col v-for="player in topPlayers" :key="player.id" cols="6" sm="4" md="3">

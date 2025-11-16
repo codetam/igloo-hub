@@ -8,15 +8,15 @@
         <v-spacer></v-spacer>
         <v-chip size="small" color="surface-variant">
           <v-icon start size="16">mdi-map-marker</v-icon>
-          Stadio
+          {{ game.stadium?.name }}
         </v-chip>
       </div>
 
       <!-- Score Display -->
       <div class="score-section">
         <div class="team-score">
-          <div class="text-h5 font-weight-bold">{{ score.team_1 }}</div>
-          <div class="text-caption text-secondary">Team 1</div>
+          <div class="text-h5 font-weight-bold">{{ score.home_team }}</div>
+          <div class="text-caption text-secondary">Team Casa</div>
         </div>
 
         <div class="vs-divider">
@@ -24,8 +24,8 @@
         </div>
 
         <div class="team-score">
-          <div class="text-h5 font-weight-bold">{{ score.team_2 }}</div>
-          <div class="text-caption text-secondary">Team 2</div>
+          <div class="text-h5 font-weight-bold">{{ score.away_team }}</div>
+          <div class="text-caption text-secondary">Team Fuori Casa</div>
         </div>
       </div>
 
@@ -37,16 +37,11 @@
       </div>
 
       <!-- Draw -->
-      <div v-else-if="score.team_1 === score.team_2 && (score.team_1 > 0 || score.team_2 > 0)" class="text-center mt-3">
+      <div v-else-if="score.home_team === score.away_team && (score.home_team > 0 || score.away_team > 0)"
+        class="text-center mt-3">
         <v-chip size="small" color="warning">
           Pareggio
         </v-chip>
-      </div>
-
-      <!-- Notes -->
-      <div v-if="score.status" class="mt-3">
-        <v-icon size="16" class="mr-1">mdi-information</v-icon>
-        <span class="text-caption">{{ score.status }}</span>
       </div>
     </v-card-text>
   </v-card>
@@ -55,23 +50,28 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { gamesApi } from '@/services/api'
-import { formatDate } from '@/utils/dateUtils'
-import type { GameListItem, GameScore } from '@/types'
+import type { Game, GameScore } from '@/types'
 
 interface Props {
-  game: GameListItem
+  game: Game
 }
 
 const props = defineProps<Props>()
 
 const score = ref<GameScore>({
-  game_id: props.game.id,
-  team_1: 0,
-  team_2: 0,
-  status: ''
+  home_team: 0,
+  away_team: 0,
 })
 
-const winner = computed(() => score.value.winner)
+const winner = computed(() => {
+  if (score.value.home_team > score.value.away_team) {
+    return 1;
+  }
+  else if (score.value.away_team > score.value.home_team) {
+    return 2;
+  }
+  else return null;
+})
 
 const formattedDate = computed(() => {
   const date = new Date(props.game.date)
@@ -84,8 +84,8 @@ const formattedDate = computed(() => {
 
 onMounted(async () => {
   try {
-    const response = await gamesApi.getScore(props.game.id)
-    score.value = response.data
+    const response = await gamesApi.getById(props.game.id)
+    score.value = response.data.score
   } catch (e) {
     console.error('Failed to fetch score:', e)
   }

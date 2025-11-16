@@ -12,8 +12,7 @@
                         prepend-inner-icon="mdi-account" required autofocus></v-text-field>
 
                     <v-text-field v-model="formData.nickname" label="Nickname (Opzionale)"
-                        prepend-inner-icon="mdi-account-star" hint=""
-                        persistent-hint></v-text-field>
+                        prepend-inner-icon="mdi-account-star" hint="" persistent-hint></v-text-field>
 
                     <v-alert v-if="error" type="error" class="mt-4" closable @click:close="error = null">
                         {{ error }}
@@ -80,7 +79,7 @@ async function handleSubmit() {
 
         // Redirect after short delay
         setTimeout(() => {
-            router.push({ name: 'players' })
+            router.push({ name: 'players' as any })
         }, 1000)
     } catch (e) {
         error.value = 'Creazione giocatore fallita. Riprova.'

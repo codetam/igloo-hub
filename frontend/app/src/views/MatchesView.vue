@@ -14,7 +14,7 @@
         <!-- Empty State -->
         <EmptyState v-else-if="gamesStore.games.length === 0" icon="mdi-soccer-field" title="Non ci sono ancora partite"
             message="Crea la tua prima partita!" action-text="Crea Partita"
-            @action="router.push({ name: 'create-match' })" />
+            @action="router.push({ name: 'create-match' as any })" />
 
         <!-- Matches List -->
         <div v-else class="matches-list">

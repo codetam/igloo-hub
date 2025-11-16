@@ -1,9 +1,4 @@
 // Base models
-export interface Stadium {
-  id: string
-  name: string
-  address?: string
-}
 
 export interface Player {
   id: string
@@ -12,65 +7,11 @@ export interface Player {
   profile?: string
 }
 
-// Goal with nested player data
-export interface Goal {
-  id: string
-  team: number
-  minute?: string // Now a datetime string
-  scorer: Player
-  assister?: Player | null
-}
-
-// Game list response (minimal data)
-export interface GameListItem {
-  id: string
-  date: string
-  stadium_id: string
-  notes?: string
-  started_at?: string
-  ended_at?: string
-}
-
-// Game detail response (full data with nested objects)
-export interface GameDetail {
-  id: string
-  date: string
-  notes?: string
-  stadium: Stadium
-  goals: Goal[]
-  started_at?: string
-  ended_at?: string
-}
-
-// Player in game context (with stats)
-export interface PlayerInGame {
+export interface GlobalPlayerStats {
   id: string
   name: string
   nickname?: string
-  goals: number
-  assists: number
-}
-
-// Team players response
-export interface TeamPlayers {
-  team_1: PlayerInGame[]
-  team_2: PlayerInGame[]
-}
-
-// Game score response
-export interface GameScore {
-  game_id: string
-  team_1: number
-  team_2: number
-  winner?: number | null
-  status: string
-}
-
-// Player statistics
-export interface PlayerStats {
-  player_id: string
-  name: string
-  nickname?: string
+  profile?: string
   games_played: number
   total_goals: number
   total_assists: number
@@ -78,38 +19,81 @@ export interface PlayerStats {
   goals_per_game: number
 }
 
-// Player game history item
-export interface PlayerGame {
+export interface GamePlayerStats {
   game_id: string
   date: string
   stadium: string
-  team: number
+  team: 'home' | 'away'
   score: string
-  result: 'win' | 'draw' | 'loss'
+  result: 'win' | 'loss' | 'draw'
   goals: number
   assists: number
 }
 
+export interface Stadium {
+  id: string
+  name: string
+  address?: string
+}
+
+export interface GameScore {
+  home_team: number
+  away_team: number
+}
+
+// Goal with nested player data
+export interface Goal {
+  id: string
+  team_id: string
+  minute: string | null
+  scorer: Player
+  assister: Player | null
+}
+
+export interface GamePlayerTeamRead {
+  id: string
+  name: string
+  nickname?: string
+  profile?: string
+  goals: number
+  assists: number
+}
+
+export interface GameTeamRead {
+  id: string
+  name: string | null
+  players: GamePlayerTeamRead[]
+}
+
 // Request types
-export interface CreatePlayerRequest {
+export interface PlayerCreate {
   name: string
   nickname?: string
 }
 
-export interface CreateGameRequest {
+export interface GameCreate {
   stadium_id: string
   date: string
-  notes?: string
 }
 
-export interface AddPlayerToGameRequest {
-  player_id: string
-  team: number
-}
-
-export interface RecordGoalRequest {
+export interface GoalCreate {
   scorer_id: string
-  team: number
+  team_id: string
   assister_id?: string
   minute?: string
+}
+
+export interface Game {
+  id: string
+  date: string
+  started_at: string | null
+  ended_at: string | null
+
+  stadium?: Stadium | null
+  home_team: GameTeamRead
+  away_team: GameTeamRead
+  goals: Goal[]
+
+  status: 'not_started' | 'started' | 'ended'
+  score: GameScore
 }

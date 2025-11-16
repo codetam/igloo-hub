@@ -11,7 +11,7 @@
     <v-card-text class="pa-4">
       <v-timeline side="end" truncate-line="both" density="compact">
         <v-timeline-item v-for="goal in sortedGoals" :key="goal.id"
-          :dot-color="goal.team === 1 ? 'secondary' : 'accent'" size="small">
+          :dot-color="goal.team_id === homeTeamId ? 'secondary' : 'accent'" size="small">
           <template v-slot:opposite>
             <div class="text-caption">
               {{ formatGoalMinute(goal.minute) }}
@@ -21,8 +21,8 @@
           <v-card elevation="2" class="goal-card">
             <v-card-text class="pa-3">
               <div class="d-flex align-center mb-1">
-                <v-chip :color="goal.team === 1 ? 'secondary' : 'accent'" size="x-small" class="mr-2">
-                  Team {{ goal.team }}
+                <v-chip :color="goal.team_id === homeTeamId ? 'secondary' : 'accent'" size="x-small" class="mr-2">
+                  Team {{ (goal.team_id === homeTeamId ? "Casa" : "Fuori Casa") }}
                 </v-chip>
                 <v-icon size="16" class="mr-1">mdi-soccer</v-icon>
                 <span class="text-body-2 font-weight-bold">
@@ -48,6 +48,8 @@ import type { Goal } from '@/types'
 
 interface Props {
   goals: Goal[]
+  homeTeamId: string
+  awayTeamId: string
   gameStartTime: string // Game start datetime
 }
 
@@ -62,7 +64,7 @@ const sortedGoals = computed(() => {
   })
 })
 
-function formatGoalMinute(goalTime?: string): string {
+function formatGoalMinute(goalTime: string | null): string {
   if (!goalTime) return '-'
 
   const gameStart = new Date(props.gameStartTime)

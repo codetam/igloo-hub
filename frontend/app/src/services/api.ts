@@ -2,16 +2,12 @@ import axios from 'axios'
 import type {
   Player,
   Stadium,
-  GameListItem,
-  GameDetail,
-  PlayerStats,
-  PlayerGame,
-  GameScore,
-  TeamPlayers,
-  CreatePlayerRequest,
-  CreateGameRequest,
-  AddPlayerToGameRequest,
-  RecordGoalRequest,
+  Game,
+  GlobalPlayerStats,
+  GamePlayerStats,
+  PlayerCreate,
+  GameCreate,
+  GoalCreate,
 } from '@/types'
 
 const api = axios.create({
@@ -23,40 +19,37 @@ const api = axios.create({
 
 // Players
 export const playersApi = {
-  create: (data: CreatePlayerRequest) => api.post<Player>('/players', null, { params: data }),
-  getById: (id: string) => api.get<Player>(`/players/${id}`),
-  list: (skip = 0, limit = 50) => api.get<Player[]>('/players', { params: { skip, limit } }),
-  update: (id: string, data: Partial<CreatePlayerRequest>) => api.put<Player>(`/players/${id}`, null, { params: data }),
+  create: (data: PlayerCreate) => api.post<Player>('/players', data),
+  getById: (id: string) => api.get<GlobalPlayerStats>(`/players/${id}`),
+  list: (skip = 0, limit = 50) => api.get<GlobalPlayerStats[]>('/players', { params: { skip, limit } }),
+  update: (id: string, data: PlayerCreate) => api.put<GlobalPlayerStats>(`/players/${id}`, data),
   delete: (id: string) => api.delete(`/players/${id}`),
-  getStats: (id: string) => api.get<PlayerStats>(`/players/${id}/stats`),
-  getGames: (id: string) => api.get<PlayerGame[]>(`/players/${id}/games`),
+  getGames: (id: string) => api.get<GamePlayerStats[]>(`/players/${id}/games`),
   searchByName: (name: string) => api.get<Player[]>('/players/search/by-name', { params: { name } }),
 }
 
 // Games
 export const gamesApi = {
-  create: (data: CreateGameRequest) => api.post<GameListItem>('/games', null, { params: data }),
-  getById: (id: string) => api.get<GameDetail>(`/games/${id}`),
-  list: (skip = 0, limit = 20) => api.get<GameListItem[]>('/games', { params: { skip, limit } }),
+  create: (data: GameCreate) => api.post<Game>('/games', data),
+  getById: (id: string) => api.get<Game>(`/games/${id}`),
+  list: (skip = 0, limit = 20) => api.get<Game[]>('/games', { params: { skip, limit } }),
   delete: (id: string) => api.delete(`/games/${id}`),
-  addPlayer: (gameId: string, data: AddPlayerToGameRequest) => 
-    api.post(`/games/${gameId}/players`, null, { params: data }),
-  recordGoal: (gameId: string, data: RecordGoalRequest) => 
-    api.post(`/games/${gameId}/goals`, null, { params: data }),
-  getScore: (gameId: string) => api.get<GameScore>(`/games/${gameId}/score`),
-  getPlayers: (gameId: string) => api.get<TeamPlayers>(`/games/${gameId}/players`),
-  startGame: (gameId: string) => api.put<GameDetail>(`/games/${gameId}/start`),
-  endGame: (gameId: string) => api.put<GameDetail>(`/games/${gameId}/end`),
+  addPlayer: (gameId: string, playerId: string, teamId: string) => 
+    api.post(`/games/${gameId}/players`, { player_id: playerId, team_id: teamId }),
+  recordGoal: (gameId: string, data: GoalCreate) => 
+    api.post(`/games/${gameId}/goals`, data),
+  startGame: (gameId: string) => api.put<Game>(`/games/${gameId}/start`),
+  endGame: (gameId: string) => api.put<Game>(`/games/${gameId}/end`),
 }
 
 // Stadiums
 export const stadiumsApi = {
-  create: (name: string, address?: string) => 
-    api.post<Stadium>('/stadiums', null, { params: { name, address } }),
+  create: (data: { name: string; address?: string }) => 
+    api.post<Stadium>('/stadiums', data),
   getById: (id: string) => api.get<Stadium>(`/stadiums/${id}`),
   list: (skip = 0, limit = 50) => api.get<Stadium[]>('/stadiums', { params: { skip, limit } }),
   update: (id: string, name?: string, address?: string) => 
-    api.put<Stadium>(`/stadiums/${id}`, null, { params: { name, address } }),
+    api.put<Stadium>(`/stadiums/${id}`, undefined, { params: { name, address } }),
   delete: (id: string) => api.delete(`/stadiums/${id}`),
 }
 

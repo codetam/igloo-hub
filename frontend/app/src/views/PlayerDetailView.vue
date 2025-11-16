@@ -17,12 +17,12 @@
       </v-card>
 
       <!-- Stats Cards -->
-      <v-row v-if="stats" class="mb-6">
+      <v-row v-if="player" class="mb-6">
         <v-col cols="6" sm="3">
           <v-card elevation="2">
             <v-card-text class="text-center pa-4">
               <v-icon size="40" color="secondary" class="mb-2">mdi-soccer</v-icon>
-              <div class="text-h4 font-weight-bold gold-text">{{ stats.total_goals }}</div>
+              <div class="text-h4 font-weight-bold gold-text">{{ player.total_goals }}</div>
               <div class="text-caption">Goal</div>
             </v-card-text>
           </v-card>
@@ -32,7 +32,7 @@
           <v-card elevation="2">
             <v-card-text class="text-center pa-4">
               <v-icon size="40" color="accent" class="mb-2">mdi-hand-pointing-right</v-icon>
-              <div class="text-h4 font-weight-bold gold-text">{{ stats.total_assists }}</div>
+              <div class="text-h4 font-weight-bold gold-text">{{ player.total_assists }}</div>
               <div class="text-caption">Assist</div>
             </v-card-text>
           </v-card>
@@ -42,7 +42,7 @@
           <v-card elevation="2">
             <v-card-text class="text-center pa-4">
               <v-icon size="40" color="success" class="mb-2">mdi-trophy</v-icon>
-              <div class="text-h4 font-weight-bold gold-text">{{ stats.wins }}</div>
+              <div class="text-h4 font-weight-bold gold-text">{{ player.wins }}</div>
               <div class="text-caption">Vittorie</div>
             </v-card-text>
           </v-card>
@@ -52,7 +52,7 @@
           <v-card elevation="2">
             <v-card-text class="text-center pa-4">
               <v-icon size="40" color="info" class="mb-2">mdi-soccer-field</v-icon>
-              <div class="text-h4 font-weight-bold gold-text">{{ stats.games_played }}</div>
+              <div class="text-h4 font-weight-bold gold-text">{{ player.games_played }}</div>
               <div class="text-caption">Partite</div>
             </v-card-text>
           </v-card>
@@ -60,13 +60,13 @@
       </v-row>
 
       <!-- Additional Stats -->
-      <v-card v-if="stats" class="mb-6" elevation="2">
+      <v-card v-if="player" class="mb-6" elevation="2">
         <v-card-text class="pa-4">
           <v-row>
             <v-col cols="12" sm="6">
               <div class="stat-item">
                 <span class="text-body-2 text-secondary">Goal per Partita</span>
-                <span class="text-h6 font-weight-bold ml-auto">{{ stats.goals_per_game }}</span>
+                <span class="text-h6 font-weight-bold ml-auto">{{ player.goals_per_game }}</span>
               </div>
             </v-col>
             <v-col cols="12" sm="6">
@@ -87,29 +87,15 @@
 
         <LoadingSpinner v-if="loadingGames" message="Loading games..." />
 
-        <EmptyState
-          v-else-if="playerGames.length === 0"
-          icon="mdi-soccer-field"
-          title="Non ci sono partite"
-          message="Il giocatore non ha ancora giocato una partita"
-        />
+        <EmptyState v-else-if="playerGames.length === 0" icon="mdi-soccer-field" title="Non ci sono partite"
+          message="Il giocatore non ha ancora giocato una partita" />
 
-        <v-card
-          v-else
-          v-for="game in playerGames"
-          :key="game.game_id"
-          :to="{ name: 'match-detail', params: { id: game.game_id } }"
-          class="mb-3"
-          elevation="2"
-          hover
-        >
+        <v-card v-else v-for="game in playerGames" :key="game.game_id"
+          :to="{ name: 'match-detail', params: { id: game.game_id } }" class="mb-3" elevation="2" hover>
           <v-card-text class="pa-4">
             <div class="d-flex align-center mb-2">
-              <v-chip
-                :color="game.result === 'win' ? 'success' : game.result === 'loss' ? 'error' : 'warning'"
-                size="small"
-                class="mr-2"
-              >
+              <v-chip :color="game.result === 'win' ? 'success' : game.result === 'loss' ? 'error' : 'warning'"
+                size="small" class="mr-2">
                 {{ game.result.toUpperCase() }}
               </v-chip>
               <v-chip size="small" variant="outlined" class="mr-2">
@@ -141,12 +127,8 @@
       </div>
     </div>
 
-    <EmptyState
-      v-else
-      icon="mdi-account-off"
-      title="Giocatore non trovato"
-      message="Il giocatore che cerchi non esiste"
-    />
+    <EmptyState v-else icon="mdi-account-off" title="Giocatore non trovato"
+      message="Il giocatore che cerchi non esiste" />
   </v-container>
 </template>
 
@@ -165,12 +147,11 @@ const loading = ref(false)
 const loadingGames = ref(false)
 
 const player = computed(() => playersStore.currentPlayer)
-const stats = computed(() => playersStore.currentPlayerStats)
 const playerGames = computed(() => playersStore.currentPlayerGames)
 
 const winRate = computed(() => {
-  if (!stats.value || stats.value.games_played === 0) return 0
-  return Math.round((stats.value.wins / stats.value.games_played) * 100)
+  if (!player.value || player.value.games_played === 0) return 0
+  return Math.round((player.value.wins / player.value.games_played) * 100)
 })
 
 function formatDate(dateString: string) {
@@ -179,11 +160,10 @@ function formatDate(dateString: string) {
 
 onMounted(async () => {
   const playerId = route.params.id as string
-  
+
   loading.value = true
   await Promise.all([
-    playersStore.fetchPlayerById(playerId),
-    playersStore.fetchPlayerStats(playerId)
+    playersStore.fetchPlayerById(playerId)
   ])
   loading.value = false
 

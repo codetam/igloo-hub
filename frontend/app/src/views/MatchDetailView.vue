@@ -14,7 +14,7 @@
                 {{ formattedDate }}
               </v-chip>
               <v-chip prepend-icon="mdi-map-marker" color="surface-variant" class="ml-2">
-                {{ game.stadium.name }}
+                {{ game.stadium?.name }}
               </v-chip>
               <v-chip v-if="gameStatus === 'live'" color="error" text-color="white" prepend-icon="mdi-record-circle"
                 class="ml-2">
@@ -44,12 +44,6 @@
 
           <!-- Scoreboard -->
           <MatchScoreboard v-if="score" :score="score" />
-
-          <!-- Notes -->
-          <v-alert v-if="game.notes" type="info" variant="tonal" class="mt-4">
-            <v-icon start>mdi-note-text</v-icon>
-            {{ game.notes }}
-          </v-alert>
         </v-card-text>
       </v-card>
 
@@ -61,19 +55,20 @@
       <!-- Teams -->
       <v-row class="mb-6">
         <v-col cols="12" md="6">
-          <TeamLineup :team-number="1" :players="teamPlayers?.team_1 || []" @add-player="openAddPlayerDialog(1)" />
+          <TeamLineup :game="game" :team="game.home_team" @add-player="openAddPlayerDialog(game.home_team.id)" />
         </v-col>
         <v-col cols="12" md="6">
-          <TeamLineup :team-number="2" :players="teamPlayers?.team_2 || []" @add-player="openAddPlayerDialog(2)" />
+          <TeamLineup :game="game" :team="game.away_team" @add-player="openAddPlayerDialog(game.away_team.id)" />
         </v-col>
       </v-row>
 
       <!-- Match Timeline -->
       <MatchTimeline v-if="game.started_at" :goals="game.goals" :start-time="game.started_at" :end-time="game.ended_at"
-        :is-live="gameStatus === 'live'" class="mb-6" />
+        :is-live="gameStatus === 'live'" :home-team-id="game.home_team.id" class="mb-6" />
 
       <!-- Goals Timeline -->
-      <GoalsList v-if="game.goals && game.goals.length > 0" :goals="game.goals" :game-start-time="game.date" />
+      <GoalsList v-if="game.goals && game.goals.length > 0" :goals="game.goals" :game-start-time="game.date"
+        :home-team-id="game.home_team.id" :away-team-id="game.away_team.id" />
 
       <!-- Delete Match -->
       <v-card class="mt-6" elevation="0" color="transparent">
@@ -90,8 +85,7 @@
       message="La partita che stai cercando non esiste" />
 
     <!-- Record Goal Dialog -->
-    <RecordGoalDialog v-model="showRecordGoal" :game-id="game?.id || ''" :team-players="teamPlayers"
-      @goal-recorded="refreshMatchData" />
+    <RecordGoalDialog v-if="game" v-model="showRecordGoal" :game="game" @goal-recorded="refreshMatchData" />
 
     <!-- Add Player Dialog -->
     <v-dialog v-model="showAddPlayer" max-width="600">
@@ -144,11 +138,12 @@ const showRecordGoal = ref(false)
 const showAddPlayer = ref(false)
 const showDeleteDialog = ref(false)
 const deleting = ref(false)
-const selectedTeam = ref<1 | 2>(1)
+const selectedTeam = ref<string>("")
 
 const game = computed(() => gamesStore.currentGame)
-const score = computed(() => gamesStore.currentGameScore)
-const teamPlayers = computed(() => gamesStore.currentGamePlayers)
+const score = computed(() => gamesStore.currentGame?.score)
+const hometeamPlayers = computed(() => gamesStore.currentGame?.home_team)
+const awayteamPlayers = computed(() => gamesStore.currentGame?.away_team)
 
 const formattedDate = computed(() => {
   if (!game.value) return ''
@@ -156,10 +151,10 @@ const formattedDate = computed(() => {
 })
 
 const allPlayerIds = computed(() => {
-  if (!teamPlayers.value) return []
+  if (!hometeamPlayers.value || !awayteamPlayers.value) return []
   return [
-    ...teamPlayers.value.team_1.map(p => p.id),
-    ...teamPlayers.value.team_2.map(p => p.id)
+    ...hometeamPlayers.value.players.map(p => p.id),
+    ...awayteamPlayers.value.players.map(p => p.id)
   ]
 })
 
@@ -199,8 +194,8 @@ async function endMatch() {
 }
 
 
-function openAddPlayerDialog(team: 1 | 2) {
-  selectedTeam.value = team
+function openAddPlayerDialog(teamId: string) {
+  selectedTeam.value = teamId
   showAddPlayer.value = true
 }
 
@@ -208,10 +203,7 @@ async function handleAddPlayer(player: any) {
   if (!game.value) return
 
   try {
-    await gamesStore.addPlayerToGame(game.value.id, {
-      player_id: player.id,
-      team: selectedTeam.value
-    })
+    await gamesStore.addPlayerToGame(game.value.id, player.id, selectedTeam.value)
     showAddPlayer.value = false
   } catch (e) {
     console.error('Giocatore non può essere aggiunto:', e)
@@ -222,9 +214,7 @@ async function refreshMatchData() {
   if (!game.value) return
 
   await Promise.all([
-    gamesStore.fetchGameById(game.value.id),
-    gamesStore.fetchGameScore(game.value.id),
-    gamesStore.fetchGamePlayers(game.value.id)
+    gamesStore.fetchGameById(game.value.id)
   ])
 }
 
@@ -234,7 +224,7 @@ async function deleteMatch() {
   deleting.value = true
   try {
     await gamesStore.deleteGame(game.value.id)
-    router.push({ name: 'matches' })
+    router.push({ name: 'matches' as any })
   } catch (e) {
     console.error('La Partita non può essere eliminata:', e)
   } finally {
@@ -248,9 +238,7 @@ onMounted(async () => {
 
   loading.value = true
   await Promise.all([
-    gamesStore.fetchGameById(gameId),
-    gamesStore.fetchGameScore(gameId),
-    gamesStore.fetchGamePlayers(gameId)
+    gamesStore.fetchGameById(gameId)
   ])
   loading.value = false
 })

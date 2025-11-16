@@ -17,7 +17,7 @@
 
         <EmptyState v-else-if="filteredPlayers.length === 0 && !searchQuery" icon="mdi-account-group"
             title="Non ci sono giocatori" message="Aggiungi il tuo primo giocatore!" action-text="Aggiungi Giocatore"
-            @action="router.push({ name: 'create-player' })" />
+            @action="router.push({ name: 'create-player' as any })" />
 
         <EmptyState v-else-if="filteredPlayers.length === 0 && searchQuery" icon="mdi-account-search"
             title="Non ci sono giocatori" message="Prova un altro termine di ricerca" />

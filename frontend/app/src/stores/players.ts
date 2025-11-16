@@ -1,13 +1,12 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { playersApi } from '@/services/api'
-import type { Player, PlayerStats, PlayerGame, CreatePlayerRequest } from '@/types'
+import type { GlobalPlayerStats, GamePlayerStats, PlayerCreate, Player } from '@/types'
 
 export const usePlayersStore = defineStore('players', () => {
-  const players = ref<Player[]>([])
-  const currentPlayer = ref<Player | null>(null)
-  const currentPlayerStats = ref<PlayerStats | null>(null)
-  const currentPlayerGames = ref<PlayerGame[]>([])
+  const players = ref<GlobalPlayerStats[]>([])
+  const currentPlayer = ref<GlobalPlayerStats | null>(null)
+  const currentPlayerGames = ref<GamePlayerStats[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
 
@@ -39,20 +38,6 @@ export const usePlayersStore = defineStore('players', () => {
     }
   }
 
-  async function fetchPlayerStats(id: string) {
-    loading.value = true
-    error.value = null
-    try {
-      const response = await playersApi.getStats(id)
-      currentPlayerStats.value = response.data
-    } catch (e) {
-      error.value = 'Failed to fetch player stats'
-      console.error(e)
-    } finally {
-      loading.value = false
-    }
-  }
-
   async function fetchPlayerGames(id: string) {
     loading.value = true
     error.value = null
@@ -67,12 +52,13 @@ export const usePlayersStore = defineStore('players', () => {
     }
   }
 
-  async function createPlayer(data: CreatePlayerRequest) {
+  async function createPlayer(data: PlayerCreate) {
     loading.value = true
     error.value = null
     try {
       const response = await playersApi.create(data)
-      players.value.push(response.data)
+      // Refresh the list to get the player with stats
+      await fetchPlayers()
       return response.data
     } catch (e) {
       error.value = 'Failed to create player'
@@ -83,7 +69,7 @@ export const usePlayersStore = defineStore('players', () => {
     }
   }
 
-  async function updatePlayer(id: string, data: Partial<CreatePlayerRequest>) {
+  async function updatePlayer(id: string, data: PlayerCreate) {
     loading.value = true
     error.value = null
     try {
@@ -138,13 +124,11 @@ export const usePlayersStore = defineStore('players', () => {
   return {
     players,
     currentPlayer,
-    currentPlayerStats,
     currentPlayerGames,
     loading,
     error,
     fetchPlayers,
     fetchPlayerById,
-    fetchPlayerStats,
     fetchPlayerGames,
     createPlayer,
     updatePlayer,

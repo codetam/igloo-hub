@@ -12,43 +12,17 @@
           <v-stepper-window>
             <v-stepper-window-item :value="1">
               <v-form ref="formRef" v-model="valid">
-                <v-select
-                  v-model="formData.stadium_id"
-                  :items="stadiumOptions"
-                  item-title="name"
-                  item-value="id"
-                  label="Stadio *"
-                  :rules="[(v) => !!v || 'Lo stadio non può essere vuoto!']"
-                  prepend-inner-icon="mdi-map-marker"
-                  required
-                >
+                <v-select v-model="formData.stadium_id" :items="stadiumOptions" item-title="name" item-value="id"
+                  label="Stadio *" :rules="[(v) => !!v || 'Lo stadio non può essere vuoto!']"
+                  prepend-inner-icon="mdi-map-marker" required>
                   <template v-slot:append>
-                    <v-btn
-                      icon="mdi-plus"
-                      size="small"
-                      variant="text"
-                      @click="showCreateStadium = true"
-                    ></v-btn>
+                    <v-btn icon="mdi-plus" size="small" variant="text" @click="showCreateStadium = true"></v-btn>
                   </template>
                 </v-select>
 
-                <v-text-field
-                  v-model="formData.date"
-                  label="Data *"
-                  type="datetime-local"
-                  :rules="[(v) => !!v || 'La data non può essere vuota!']"
-                  prepend-inner-icon="mdi-calendar"
-                  required
-                ></v-text-field>
-
-                <v-textarea
-                  v-model="formData.notes"
-                  label="Note (Opzionale)"
-                  prepend-inner-icon="mdi-note-text"
-                  rows="3"
-                  hint=""
-                  persistent-hint
-                ></v-textarea>
+                <v-text-field v-model="formData.date" label="Data *" type="datetime-local"
+                  :rules="[(v) => !!v || 'La data non può essere vuota!']" prepend-inner-icon="mdi-calendar"
+                  required></v-text-field>
               </v-form>
             </v-stepper-window-item>
 
@@ -59,31 +33,22 @@
               </v-alert>
 
               <v-row>
-                <!-- Team 1 -->
+                <!-- Home Team -->
                 <v-col cols="12" md="6">
                   <div class="team-section">
                     <h3 class="text-h6 mb-3 d-flex align-center">
                       <v-icon color="secondary" class="mr-2">mdi-shield</v-icon>
-                      Team 1
-                      <v-chip size="small" class="ml-2">{{ team1Players.length }}</v-chip>
+                      Home Team
+                      <v-chip size="small" class="ml-2">{{ homeTeamPlayers.length }}</v-chip>
                     </h3>
-                    
-                    <v-btn
-                      block
-                      variant="outlined"
-                      color="secondary"
-                      prepend-icon="mdi-account-plus"
-                      @click="openPlayerDialog(1)"
-                      class="mb-3"
-                    >
+
+                    <v-btn block variant="outlined" color="secondary" prepend-icon="mdi-account-plus"
+                      @click="openPlayerDialog(1)" class="mb-3">
                       Aggiungi Giocatore
                     </v-btn>
 
-                    <v-list v-if="team1Players.length > 0">
-                      <v-list-item
-                        v-for="player in team1Players"
-                        :key="player.id"
-                      >
+                    <v-list v-if="homeTeamPlayers.length > 0">
+                      <v-list-item v-for="player in homeTeamPlayers" :key="player.id">
                         <template v-slot:prepend>
                           <v-avatar color="secondary" size="32">
                             <v-icon size="20">mdi-account</v-icon>
@@ -94,50 +59,32 @@
                           "{{ player.nickname }}"
                         </v-list-item-subtitle>
                         <template v-slot:append>
-                          <v-btn
-                            icon="mdi-close"
-                            size="small"
-                            variant="text"
-                            @click="removePlayer(1, player.id)"
-                          ></v-btn>
+                          <v-btn icon="mdi-close" size="small" variant="text"
+                            @click="removePlayer(1, player.id)"></v-btn>
                         </template>
                       </v-list-item>
                     </v-list>
-                    <EmptyState
-                      v-else
-                      icon="mdi-account-group-outline"
-                      title="Non ci sono giocatori"
-                      message="Aggiungi giocatori al Team 1"
-                      :icon-size="48"
-                    />
+                    <EmptyState v-else icon="mdi-account-group-outline" title="Non ci sono giocatori"
+                      message="Aggiungi giocatori nel team in casa" :icon-size="48" />
                   </div>
                 </v-col>
 
-                <!-- Team 2 -->
+                <!-- Away Team -->
                 <v-col cols="12" md="6">
                   <div class="team-section">
                     <h3 class="text-h6 mb-3 d-flex align-center">
                       <v-icon color="accent" class="mr-2">mdi-shield</v-icon>
-                      Team 2
-                      <v-chip size="small" class="ml-2">{{ team2Players.length }}</v-chip>
+                      Away Team
+                      <v-chip size="small" class="ml-2">{{ awayTeamPlayers.length }}</v-chip>
                     </h3>
-                    
-                    <v-btn
-                      block
-                      variant="outlined"
-                      color="accent"
-                      prepend-icon="mdi-account-plus"
-                      @click="openPlayerDialog(2)"
-                      class="mb-3"
-                    >
+
+                    <v-btn block variant="outlined" color="accent" prepend-icon="mdi-account-plus"
+                      @click="openPlayerDialog(2)" class="mb-3">
                       Aggiungi Giocatore
                     </v-btn>
 
-                    <v-list v-if="team2Players.length > 0">
-                      <v-list-item
-                        v-for="player in team2Players"
-                        :key="player.id"
-                      >
+                    <v-list v-if="awayTeamPlayers.length > 0">
+                      <v-list-item v-for="player in awayTeamPlayers" :key="player.id">
                         <template v-slot:prepend>
                           <v-avatar color="accent" size="32">
                             <v-icon size="20">mdi-account</v-icon>
@@ -148,22 +95,13 @@
                           "{{ player.nickname }}"
                         </v-list-item-subtitle>
                         <template v-slot:append>
-                          <v-btn
-                            icon="mdi-close"
-                            size="small"
-                            variant="text"
-                            @click="removePlayer(2, player.id)"
-                          ></v-btn>
+                          <v-btn icon="mdi-close" size="small" variant="text"
+                            @click="removePlayer(2, player.id)"></v-btn>
                         </template>
                       </v-list-item>
                     </v-list>
-                    <EmptyState
-                      v-else
-                      icon="mdi-account-group-outline"
-                      title="Non ci sono giocatori"
-                      message="Aggiungi giocatori al Team 2"
-                      :icon-size="48"
-                    />
+                    <EmptyState v-else icon="mdi-account-group-outline" title="Non ci sono giocatori"
+                      message="Aggiungi giocatori al team fuori casa" :icon-size="48" />
                   </div>
                 </v-col>
               </v-row>
@@ -171,50 +109,29 @@
           </v-stepper-window>
 
           <template #actions>
-            <v-stepper-actions
-              @click:next="nextStep"
-              @click:prev="step--"
-              :disabled="step === 1 ? !valid : false"
-              next-text="Avanti"
-              prev-text="Indietro"
-            />
+            <v-stepper-actions @click:next="nextStep" @click:prev="step--" :disabled="step === 1 ? !valid : false"
+              next-text="Avanti" prev-text="Indietro" />
           </template>
         </v-stepper>
 
-        <v-alert
-          v-if="error"
-          type="error"
-          class="mt-4"
-          closable
-          @click:close="error = null"
-        >
+        <v-alert v-if="error" type="error" class="mt-4" closable @click:close="error = null">
           {{ error }}
         </v-alert>
       </v-card-text>
     </v-card>
 
     <!-- Player Selection Dialog -->
-    <PlayerSearchDialog
-      v-model="showPlayerDialog"
-      :exclude-ids="excludedPlayerIds"
-      @select="handlePlayerSelect"
-    />
+    <PlayerSearchDialog v-model="showPlayerDialog" :exclude-ids="excludedPlayerIds" @select="handlePlayerSelect" />
 
     <!-- Create Stadium Dialog -->
     <v-dialog v-model="showCreateStadium" max-width="500">
       <v-card>
         <v-card-title>Create Stadium</v-card-title>
         <v-card-text>
-          <v-text-field
-            v-model="newStadiumName"
-            label="Nome Stadio *"
-            prepend-inner-icon="mdi-map-marker"
-          ></v-text-field>
-          <v-text-field
-            v-model="newStadiumAddress"
-            label="Indirizzo (Opzionale)"
-            prepend-inner-icon="mdi-map"
-          ></v-text-field>
+          <v-text-field v-model="newStadiumName" label="Nome Stadio *"
+            prepend-inner-icon="mdi-map-marker"></v-text-field>
+          <v-text-field v-model="newStadiumAddress" label="Indirizzo (Opzionale)"
+            prepend-inner-icon="mdi-map"></v-text-field>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -253,16 +170,15 @@ const newStadiumAddress = ref('')
 const formData = reactive({
   stadium_id: '',
   date: getCurrentDateTimeLocalUTCPlus2(),
-  notes: ''
 })
 
-const team1Players = ref<Player[]>([])
-const team2Players = ref<Player[]>([])
+const homeTeamPlayers = ref<Player[]>([])
+const awayTeamPlayers = ref<Player[]>([])
 
 const stadiumOptions = computed(() => stadiumsStore.stadiums)
 
 const excludedPlayerIds = computed(() => {
-  return [...team1Players.value, ...team2Players.value].map(p => p.id)
+  return [...homeTeamPlayers.value, ...awayTeamPlayers.value].map(p => p.id)
 })
 
 function openPlayerDialog(team: 1 | 2) {
@@ -272,17 +188,17 @@ function openPlayerDialog(team: 1 | 2) {
 
 function handlePlayerSelect(player: Player) {
   if (selectedTeam.value === 1) {
-    team1Players.value.push(player)
+    homeTeamPlayers.value.push(player)
   } else {
-    team2Players.value.push(player)
+    awayTeamPlayers.value.push(player)
   }
 }
 
 function removePlayer(team: 1 | 2, playerId: string) {
   if (team === 1) {
-    team1Players.value = team1Players.value.filter(p => p.id !== playerId)
+    homeTeamPlayers.value = homeTeamPlayers.value.filter(p => p.id !== playerId)
   } else {
-    team2Players.value = team2Players.value.filter(p => p.id !== playerId)
+    awayTeamPlayers.value = awayTeamPlayers.value.filter(p => p.id !== playerId)
   }
 }
 
@@ -300,28 +216,27 @@ async function createMatch() {
   try {
     // Convert datetime from UTC+2 to UTC for backend
     const utcDate = dateTimeLocalToUTC(formData.date)
-    
+
     // Create the match
     const game = await gamesStore.createGame({
       stadium_id: formData.stadium_id,
       date: utcDate,
-      notes: formData.notes || undefined
     })
 
     // Add players to teams
     const addPlayerPromises = [
-      ...team1Players.value.map(p => 
-        gamesStore.addPlayerToGame(game.id, { player_id: p.id, team: 1 })
+      ...homeTeamPlayers.value.map(p =>
+        gamesStore.addPlayerToGame(game.id, p.id, game.home_team.id)
       ),
-      ...team2Players.value.map(p => 
-        gamesStore.addPlayerToGame(game.id, { player_id: p.id, team: 2 })
+      ...awayTeamPlayers.value.map(p =>
+        gamesStore.addPlayerToGame(game.id, p.id, game.away_team.id)
       )
     ]
 
     await Promise.all(addPlayerPromises)
 
     // Navigate to match detail
-    router.push({ name: 'match-detail', params: { id: game.id } })
+    router.push({ name: 'match-detail' as any, params: { id: game.id } })
   } catch (e) {
     error.value = 'Creazione partita fallita. Riprova.'
     console.error(e)
@@ -332,10 +247,10 @@ async function createStadium() {
   if (!newStadiumName.value) return
 
   try {
-    const stadium = await stadiumsStore.createStadium(
-      newStadiumName.value,
-      newStadiumAddress.value || undefined
-    )
+    const stadium = await stadiumsStore.createStadium({
+      name: newStadiumName.value,
+      address: newStadiumAddress.value || undefined
+    })
     formData.stadium_id = stadium.id
     showCreateStadium.value = false
     newStadiumName.value = ''

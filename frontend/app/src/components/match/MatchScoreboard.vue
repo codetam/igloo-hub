@@ -5,7 +5,7 @@
                 <v-icon color="secondary" size="32">mdi-shield</v-icon>
                 <span class="text-h6">Team 1</span>
             </div>
-            <div class="score-display">{{ score.team_1 }}</div>
+            <div class="score-display">{{ score.home_team }}</div>
         </div>
 
         <div class="score-divider">
@@ -17,18 +17,17 @@
                 <v-icon color="accent" size="32">mdi-shield</v-icon>
                 <span class="text-h6">Team 2</span>
             </div>
-            <div class="score-display">{{ score.team_2 }}</div>
+            <div class="score-display">{{ score.away_team }}</div>
         </div>
     </div>
 
-    <div v-if="score.winner" class="text-center mt-4">
-        <v-chip :color="score.winner === 1 ? 'secondary' : 'accent'" size="large" prepend-icon="mdi-trophy"
-            class="px-6">
-            Team {{ score.winner }} Vince!
+    <div v-if="winner" class="text-center mt-4">
+        <v-chip :color="winner === 1 ? 'secondary' : 'accent'" size="large" prepend-icon="mdi-trophy" class="px-6">
+            Team {{ winner }} Vince!
         </v-chip>
     </div>
 
-    <div v-else-if="score.team_1 === score.team_2 && score.team_1 > 0" class="text-center mt-4">
+    <div v-else-if="score.home_team > 0" class="text-center mt-4">
         <v-chip color="warning" size="large" prepend-icon="mdi-equal" class="px-6">
             Pareggio
         </v-chip>
@@ -42,7 +41,18 @@ interface Props {
     score: GameScore
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
+
+const winner = computed(() => {
+    if (props.score.home_team > props.score.away_team) {
+        return 1;
+    }
+    else if (props.score.away_team > props.score.home_team) {
+        return 2;
+    }
+    else return null;
+})
+
 </script>
 
 <style scoped>

@@ -7,11 +7,11 @@
                     <v-chip size="small" class="mr-2"
                         :style="{ background: theme.current.value.colors.secondary, color: '#fff' }">
                         <v-icon start size="small">mdi-soccer</v-icon>
-                        Team 1
+                        Team Casa
                     </v-chip>
                     <v-chip size="small" :style="{ background: theme.current.value.colors.accent, color: '#000' }">
                         <v-icon start size="small">mdi-soccer</v-icon>
-                        Team 2
+                        Team Fuori Casa
                     </v-chip>
                 </div>
 
@@ -36,7 +36,7 @@
                         <v-tooltip location="top">
                             <template v-slot:activator="{ props }">
                                 <div v-bind="props" class="marker-dot goal-dot"
-                                    :style="{ background: getTeamColor(goal.team) }">
+                                    :style="{ background: getTeamColor(goal.team_id) }">
                                     <v-icon size="small" color="white">mdi-soccer</v-icon>
                                 </div>
                             </template>
@@ -44,9 +44,9 @@
                                 <div class="font-weight-bold mb-1">
                                     ⚽ {{ goal.scorer.name }}
                                     <v-chip size="x-small"
-                                        :style="{ background: getTeamColor(goal.team), color: getTextColor(goal.team) }"
+                                        :style="{ background: getTeamColor(goal.team_id), color: getTextColor(goal.team_id) }"
                                         class="ml-1">
-                                        Team {{ goal.team }}
+                                        Team {{ (goal.team_id === homeTeamId ? "Casa" : "Fuori Casa") }}
                                     </v-chip>
                                 </div>
                                 <div v-if="goal.assister" class="text-caption">
@@ -99,9 +99,10 @@ import { parseIsoToUtcPlus2 } from '@/utils/dateUtils'
 
 interface Props {
     goals: Goal[]
-    startTime?: string
-    endTime?: string
+    startTime: string | null
+    endTime: string | null
     isLive?: boolean
+    homeTeamId: string
 }
 
 const props = defineProps<Props>()
@@ -157,7 +158,7 @@ const timelineGradient = computed(() => {
     return `linear-gradient(90deg, ${colors.success} 0%, ${colors.secondary} 50%, ${colors.accent} 100%)`
 })
 
-function calculatePosition(minute?: string): number {
+function calculatePosition(minute: string | null): number {
     if (!minute || !props.startTime) return 0
     const start = parseIsoToUtcPlus2(props.startTime).getTime()
     const goalTime = parseIsoToUtcPlus2(minute).getTime()
@@ -170,7 +171,7 @@ function calculatePosition(minute?: string): number {
     return Math.max(0, Math.min(100, (goalPosition / totalDuration) * 100))
 }
 
-function getMinuteLabel(minute?: string): string {
+function getMinuteLabel(minute: string | null): string {
     if (!minute || !props.startTime) return "0'"
     const start = parseIsoToUtcPlus2(props.startTime).getTime()
     const goalTime = parseIsoToUtcPlus2(minute).getTime()
@@ -185,14 +186,14 @@ function formatTime(datetime: string): string {
     })
 }
 
-function getTeamColor(team: number): string {
+function getTeamColor(team_id: string): string {
     const colors = theme.current.value.colors
-    return team === 1 ? colors.secondary : colors.accent
+    return team_id === props.homeTeamId ? colors.secondary : colors.accent as any
 }
 
-function getTextColor(team: number): string {
+function getTextColor(team: string): string {
     const colors = theme.current.value.colors
-    return team === 1 ? colors['on-secondary'] || '#000' : colors['on-accent'] || '#000'
+    return team === props.homeTeamId ? colors['on-secondary'] || '#000' : colors['on-accent'] || '#000'
 }
 </script>
 

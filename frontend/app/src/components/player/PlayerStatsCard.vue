@@ -66,10 +66,10 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { PlayerStats } from '@/types'
+import type { GlobalPlayerStats } from '@/types'
 
 interface Props {
-    stats: PlayerStats
+    stats: GlobalPlayerStats
 }
 
 const props = defineProps<Props>()
