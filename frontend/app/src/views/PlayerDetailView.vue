@@ -135,6 +135,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import type { RouteLocationNormalizedLoadedTyped } from 'vue-router'
 import { usePlayersStore } from '@/stores/players'
 import { formatDate as formatDateUtil } from '@/utils/dateUtils'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
@@ -159,7 +160,7 @@ function formatDate(dateString: string) {
 }
 
 onMounted(async () => {
-  const playerId = route.params.id as string
+  const playerId = (route.params as { id: string }).id
 
   loading.value = true
   await Promise.all([

@@ -234,7 +234,7 @@ async function deleteMatch() {
 }
 
 onMounted(async () => {
-  const gameId = route.params.id as string
+  const gameId = (route.params as { id: string }).id
 
   loading.value = true
   await Promise.all([
