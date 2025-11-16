@@ -46,11 +46,11 @@ def get_player_stats(player: Player) -> GlobalPlayerStats:
         game = game_player.game
         player_team_id = game_player.team_id
         
-        game = GameRead(**game)
+        game = GameRead.model_validate(game)
         
-        if player_team_id == game.home_team_id and game.score.home > game.score.away:
+        if player_team_id == game.home_team.id and game.score.home_team > game.score.away_team:
             wins += 1
-        elif player_team_id == game.away_team_id and game.score.away > game.score.home:
+        elif player_team_id == game.away_team.id and game.score.away_team > game.score.home_team:
             wins += 1
     
     return GlobalPlayerStats(
@@ -67,7 +67,7 @@ def get_player_stats(player: Player) -> GlobalPlayerStats:
 class GamePlayerStats(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     
-    game_id: int
+    game_id: uuid.UUID
     date: datetime
     stadium: str
     team: Literal['home', 'away']
@@ -77,13 +77,13 @@ class GamePlayerStats(BaseModel):
     assists: int
 
 def get_gameplayer_stats(gp: GamePlayer) -> GamePlayerStats:
-    game = gp.game
-    team = "home" if game.home_team_id == gp.team_id else "away"
-    score = game.get_scoreboard()
+    game = GameRead.model_validate(gp.game)
+    team = "home" if game.home_team.id == gp.team_id else "away"
+    score = game.score
     
-    player_is_home = game.home_team_id == gp.team_id
-    player_goals = score.home if player_is_home else score.away
-    opponent_goals = score.away if player_is_home else score.home
+    player_is_home = game.home_team.id == gp.team_id
+    player_goals = score.home_team if player_is_home else score.away_team
+    opponent_goals = score.away_team if player_is_home else score.home_team
     
     if player_goals > opponent_goals:
         result = "win"
@@ -97,7 +97,7 @@ def get_gameplayer_stats(gp: GamePlayer) -> GamePlayerStats:
         date=game.date, 
         stadium=game.stadium.name, 
         team=team, 
-        score=f"{score.home} - {score.away}",
+        score=f"{score.home_team} - {score.away_team}",
         result=result, 
         goals=gp.get_goals(), 
         assists=gp.get_assists()
@@ -205,6 +205,6 @@ class GameRead(BaseModel):
     @computed_field
     @property
     def score(self) -> GameScore:
-        home_team = sum(1 for goal in self.goals if goal.team_id == self.home_team_id)
-        away_team = sum(1 for goal in self.goals if goal.team_id == self.away_team_id)
+        home_team = sum(1 for goal in self.goals if goal.team_id == self.home_team.id)
+        away_team = sum(1 for goal in self.goals if goal.team_id == self.away_team.id)
         return GameScore(home_team=home_team, away_team=away_team)

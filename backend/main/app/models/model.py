@@ -17,7 +17,10 @@ class Stadium(SQLModel, table=True):
     name: str = Field(index=True)
     address: Optional[str] = None
 
-    games: List["Game"] = Relationship(back_populates="stadium")
+    games: List["Game"] = Relationship(
+        back_populates="stadium",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"}
+    )
 
 
 class Player(SQLModel, table=True):
@@ -30,11 +33,15 @@ class Player(SQLModel, table=True):
     nickname: Optional[str] = None
     profile: Optional[str] = None
     
-    game_players: List["GamePlayer"] = Relationship(back_populates="player")
+    game_players: List["GamePlayer"] = Relationship(
+        back_populates="player",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"}
+    )
     goals_scored: List["Goal"] = Relationship(
         back_populates="scorer",
         sa_relationship_kwargs={
             "foreign_keys": "[Goal.scorer_id]",
+            "cascade": "all, delete-orphan"
         }
     )
     assists_made: List["Goal"] = Relationship(
@@ -52,7 +59,10 @@ class Team(SQLModel, table=True):
     )
     name: Optional[str] = None
     
-    players: List["GamePlayer"] = Relationship(back_populates="team")
+    players: List["GamePlayer"] = Relationship(
+        back_populates="team",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"}
+    )
     home_games: List["Game"] = Relationship(
         back_populates="home_team",
         sa_relationship_kwargs={
@@ -65,7 +75,10 @@ class Team(SQLModel, table=True):
             "foreign_keys": "[Game.away_team_id]",
         }
     )
-    goals: List["Goal"] = Relationship(back_populates="team")
+    goals: List["Goal"] = Relationship(
+        back_populates="team",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"}
+    )
 
 
 class Game(SQLModel, table=True):
@@ -94,8 +107,14 @@ class Game(SQLModel, table=True):
             "foreign_keys": "[Game.away_team_id]",
         }
     )
-    game_players: List["GamePlayer"] = Relationship(back_populates="game")
-    goals: List["Goal"] = Relationship(back_populates="game")
+    game_players: List["GamePlayer"] = Relationship(
+        back_populates="game",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"}
+    )
+    goals: List["Goal"] = Relationship(
+        back_populates="game",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"}
+    )
 
 
 class GamePlayer(SQLModel, table=True):
