@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 
 from app.models.model import Game, GamePlayer, Goal, Player, Team
 from app.api.deps import get_db
-from app.models.schema import GameCreate, GamePlayerCreate, GameRead, GoalCreate
+from app.models.schema import GameCreate, GamePlayerCreate, GameRead, GoalCreate, get_game
 
 router = APIRouter(
     prefix="/api/games",
@@ -74,7 +74,7 @@ def start_game(game_id: uuid.UUID, session: Session = Depends(get_db)):
     session.add(game)
     session.commit()
     session.refresh(game)
-    return GameRead.model_validate(game)
+    return get_game(game)
 
 
 @router.put("/{game_id}/end", response_model=GameRead)
@@ -94,16 +94,16 @@ def end_game(game_id: uuid.UUID, session: Session = Depends(get_db)):
     session.add(game)
     session.commit()
     session.refresh(game)
-    return GameRead.model_validate(game)
+    return get_game(game)
 
 @router.get("/{game_id}", response_model=GameRead)
-def get_game(game_id: uuid.UUID, session: Session = Depends(get_db)):
+def get_game_by_id(game_id: uuid.UUID, session: Session = Depends(get_db)):
     """Return one game with nested stadium, goals, and players"""
     game = session.get(Game, game_id)
     if not game:
         raise HTTPException(status_code=404, detail="Game not found")
 
-    return GameRead.model_validate(game)
+    return get_game(game)
 
 
 @router.delete("/{game_id}")
@@ -137,7 +137,7 @@ def create_game(
     session.add(game)
     session.commit()
     session.refresh(game)
-    return GameRead.model_validate(game)
+    return get_game(game)
 
 @router.get("", response_model=list[GameRead])
 def list_games(
@@ -148,4 +148,4 @@ def list_games(
     """List all games"""
     statement = select(Game).order_by(Game.date.desc()).offset(skip).limit(limit)
     games = session.exec(statement).all()
-    return [GameRead.model_validate(game) for game in games]
+    return [get_game(game) for game in games]

@@ -4,7 +4,7 @@ import uuid
 from pydantic import BaseModel, ConfigDict, computed_field
 from sqlmodel import Session
 
-from app.models.model import GamePlayer, Player
+from app.models.model import Game, GamePlayer, Player, Team
 
 # ==========================
 # PLAYER
@@ -36,7 +36,7 @@ class GlobalPlayerStats(BaseModel):
     
     @computed_field
     @property
-    def goals_per_game(self) -> int:
+    def goals_per_game(self) -> float:
         return round(self.total_goals / self.games_played, 2) if self.games_played > 0 else 0
 
 def get_player_stats(player: Player) -> GlobalPlayerStats:
@@ -46,7 +46,7 @@ def get_player_stats(player: Player) -> GlobalPlayerStats:
         game = game_player.game
         player_team_id = game_player.team_id
         
-        game = GameRead.model_validate(game)
+        game = get_game(game)
         
         if player_team_id == game.home_team.id and game.score.home_team > game.score.away_team:
             wins += 1
@@ -77,7 +77,7 @@ class GamePlayerStats(BaseModel):
     assists: int
 
 def get_gameplayer_stats(gp: GamePlayer) -> GamePlayerStats:
-    game = GameRead.model_validate(gp.game)
+    game = get_game(gp.game)
     team = "home" if game.home_team.id == gp.team_id else "away"
     score = game.score
     
@@ -138,22 +138,11 @@ class GoalRead(BaseModel):
 # ==========================
 # TEAM
 # ==========================
-class GamePlayerTeamRead(BaseModel):
+class GamePlayerTeamRead(PlayerRead):
     model_config = ConfigDict(from_attributes=True)
     
-    player: PlayerRead
-    @computed_field
-    @property
-    def id(self) -> uuid.UUID:
-        return self.player.id
-    def name(self) -> str:
-        return self.player.name
-    def nickname(self) -> str:
-        return self.player.nickname
-    def goals(self) -> int:
-        return self.get_goals()
-    def assists(self) -> int:
-        return self.get_assists()
+    goals: int
+    assists: int
 
 class GameTeamRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -208,3 +197,33 @@ class GameRead(BaseModel):
         home_team = sum(1 for goal in self.goals if goal.team_id == self.home_team.id)
         away_team = sum(1 for goal in self.goals if goal.team_id == self.away_team.id)
         return GameScore(home_team=home_team, away_team=away_team)
+    
+def get_team(team: Team):
+    game_players = team.players
+    team_players: list[GamePlayerTeamRead] = []
+    for gp in game_players:
+        team_players.append(GamePlayerTeamRead(
+            id = gp.player_id,
+            name = gp.player.name,
+            nickname = gp.player.nickname,
+            profile = gp.player.profile,
+            goals=gp.get_goals(),
+            assists=gp.get_assists()
+        ))
+    return GameTeamRead(
+        id=team.id,
+        name=team.name,
+        players=team_players
+    )
+        
+def get_game(game: Game) -> GlobalPlayerStats:
+    return GameRead(
+        id=game.id,
+        date=game.date,
+        started_at=game.started_at,
+        ended_at=game.ended_at,
+        stadium=StadiumRead.model_validate(game.stadium),
+        home_team=get_team(game.home_team),
+        away_team=get_team(game.away_team),
+        goals=[GoalRead.model_validate(goal) for goal in game.goals]
+    )

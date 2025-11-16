@@ -50,8 +50,7 @@ def get_player(player_id: uuid.UUID, session: Session = Depends(get_db)):
 @router.put("/{player_id}",  response_model=GlobalPlayerStats)
 def update_player(
     player_id: uuid.UUID,
-    name: Optional[str] = None,
-    nickname: Optional[str] = None,
+    player_data: PlayerCreate,
     session: Session = Depends(get_db)
 ):
     """Update player info"""
@@ -59,10 +58,10 @@ def update_player(
     if not player:
         raise HTTPException(status_code=404, detail="Player not found")
     
-    if name:
-        player.name = name
-    if nickname is not None:  # Allow setting to None
-        player.nickname = nickname
+    if player_data.name:
+        player.name = player_data.name
+    if player_data.nickname is not None:  # Allow setting to None
+        player.nickname = player_data.nickname
     
     session.add(player)
     session.commit()
