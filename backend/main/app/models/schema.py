@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Literal, Optional, List
 import uuid
-from pydantic import BaseModel, ConfigDict, computed_field
+from pydantic import BaseModel, ConfigDict, computed_field, field_validator
 from sqlmodel import Session
 
 from app.models.model import Game, GamePlayer, Player, Team
@@ -172,6 +172,15 @@ class GoalCreate(BaseModel):
     team_id: uuid.UUID
     assister_id: Optional[uuid.UUID] = None
     minute: Optional[datetime] = None
+    
+    @field_validator('minute', mode='before')
+    @classmethod
+    def parse_minute(cls, v):
+        if v is None:
+            return v
+        if isinstance(v, str):
+            return datetime.fromisoformat(v.replace('Z', '+00:00'))
+        return v
     
 class GameRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
