@@ -1,0 +1,10 @@
+services:  
+  main:
+    build:
+      target: prod
+    image: codetam/igloo-main:prod
+
+  frontend:
+    build:
+      target: prod
+    image: codetam/igloo-frontend:prod

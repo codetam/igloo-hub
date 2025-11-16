@@ -5,12 +5,14 @@ services:
     volumes:
       - ../backend/main/app:/project/app
       - ../logging.yaml:/logging/logging.yaml:ro
-    image: igloo-main:dev
+    image: codetam/igloo-main:dev
 
   frontend:
     build:
       target: dev
     volumes:
       - ../frontend/app:/app
+      - /app/node_modules
+      - /app/.pnpm-store
       - ../logging.yaml:/logging/logging.yaml:ro
-    image: igloo-frontend:dev
+    image: codetam/igloo-frontend:dev
