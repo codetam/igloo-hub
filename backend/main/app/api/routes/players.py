@@ -5,7 +5,7 @@ import uuid
 
 from app.models.model import Player
 from app.api.deps import get_db
-from app.models.schema import GamePlayerStats, GlobalPlayerStats, PlayerCreate, PlayerRead, get_gameplayer_stats, get_player_stats
+from app.models.schema import GamePlayerStats, GlobalPlayerStats, PlayerCreate, PlayerRead, PlayerUpdate, get_gameplayer_stats, get_player_stats
 
 router = APIRouter(
     prefix="/api/players",
@@ -50,7 +50,7 @@ def get_player(player_id: uuid.UUID, session: Session = Depends(get_db)):
 @router.put("/{player_id}",  response_model=GlobalPlayerStats)
 def update_player(
     player_id: uuid.UUID,
-    player_data: PlayerCreate,
+    player_data: PlayerUpdate,
     session: Session = Depends(get_db)
 ):
     """Update player info"""
@@ -58,7 +58,7 @@ def update_player(
     if not player:
         raise HTTPException(status_code=404, detail="Player not found")
     
-    if player_data.name:
+    if player_data.name is not None:
         player.name = player_data.name
     if player_data.nickname is not None:  # Allow setting to None
         player.nickname = player_data.nickname

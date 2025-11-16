@@ -89,7 +89,7 @@ class TestPlayerCRUD:
         """Test updating a player's name"""
         response = client.put(
             f"/api/players/{test_player['id']}",
-            params={"name": "UpdatedName"}
+            json={"name": "UpdatedName"}
         )
         
         assert response.status_code == 200
@@ -100,7 +100,7 @@ class TestPlayerCRUD:
         """Test updating a player's nickname"""
         response = client.put(
             f"/api/players/{test_player['id']}",
-            params={"nickname": "UpdatedNick"}
+            json={"nickname": "UpdatedNick"}
         )
         
         assert response.status_code == 200
@@ -111,7 +111,7 @@ class TestPlayerCRUD:
         """Test updating both name and nickname"""
         response = client.put(
             f"/api/players/{test_player['id']}",
-            params={"name": "NewName", "nickname": "NewNick"}
+            json={"name": "NewName", "nickname": "NewNick"}
         )
         
         assert response.status_code == 200
@@ -124,7 +124,7 @@ class TestPlayerCRUD:
         fake_id = str(uuid.uuid4())
         response = client.put(
             f"/api/players/{fake_id}",
-            params={"name": "NewName"}
+            json={"name": "NewName"}
         )
         
         assert response.status_code == 404

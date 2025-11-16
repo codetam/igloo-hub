@@ -14,6 +14,10 @@ class PlayerCreate(BaseModel):
     name: str
     nickname: Optional[str] = None
     
+class PlayerUpdate(BaseModel):
+    name: Optional[str] = None
+    nickname: Optional[str] = None
+    
 class PlayerRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     
