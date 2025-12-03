@@ -18,5 +18,6 @@
 *terraform.tfstate*
 .terraform*
 *custom.tfvars
+frontend/dist*
 
 !.gitignore
