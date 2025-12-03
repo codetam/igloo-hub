@@ -15,4 +15,8 @@
 *.xls
 *.pnpm-store
 
+*terraform.tfstate*
+.terraform*
+*custom.tfvars
+
 !.gitignore
