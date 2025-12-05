@@ -75,6 +75,9 @@ export default defineConfig({
   },
   server: {
     port: 3000,
-    allowedHosts: ["igloo.codetam.com"]
+    allowedHosts: [
+      "igloo.codetam.com",
+      "devigloo.codetam.com"
+    ]
   },
 })
