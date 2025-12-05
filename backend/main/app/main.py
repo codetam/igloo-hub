@@ -1,4 +1,4 @@
-import asyncio
+from mangum import Mangum
 from datetime import datetime
 import os
 import logging
@@ -31,3 +31,5 @@ app.include_router(stadiums.router)
 @app.get("/health")
 async def healthcheck():
     return {"status": "ok", "uptime_seconds": (datetime.now() - start_time).total_seconds()}
+
+handler = Mangum(app)

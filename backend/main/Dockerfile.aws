@@ -1,0 +1,16 @@
+FROM public.ecr.aws/lambda/python:3.9.2025.11.23.14
+
+
+COPY backend/main/requirements.txt /requirements
+
+RUN pip3 install --no-cache-dir --upgrade pip && \
+    pip3 install --no-cache-dir -r requirements.txt
+    
+COPY backend/main/app/ /project/app
+COPY logging.yaml /logging/logging.yaml
+
+RUN pip install -r ./app/requirements.txt
+
+WORKDIR /project
+
+CMD [ "app.main.handler" ]
