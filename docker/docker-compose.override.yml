@@ -6,7 +6,6 @@ services:
       - ../backend/main/app:/project/app
       - ../logging.yaml:/logging/logging.yaml:ro
     image: codetam/igloo-main:dev
-    command: sleep infinity
 
   frontend:
     build:
