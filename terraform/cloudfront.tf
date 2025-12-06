@@ -6,6 +6,7 @@ provider "aws" {
 
 locals {
   s3_origin_id = "landing-page-access"
+  api_gw_origin_id = "api-gw-access"
 }
 
 resource "aws_acm_certificate" "ssl_cert" {
@@ -33,12 +34,24 @@ resource "aws_acm_certificate_validation" "ssl_cert_validation" {
 
 
 resource "aws_cloudfront_distribution" "static_site_distribution" {
+
   origin {
-    domain_name = "${aws_s3_bucket.landing_page_bucket.bucket}.s3-website-${var.region}.amazonaws.com" // static site domain name
+    domain_name = "${aws_apigatewayv2_api.lambda_api.id}.execute-api.${var.region}.amazonaws.com"
+    origin_id   = local.api_gw_origin_id
+    custom_origin_config {
+      http_port              = "80"
+      https_port             = "443"
+      origin_protocol_policy = "https-only"
+      origin_ssl_protocols   = ["SSLv3", "TLSv1", "TLSv1.1", "TLSv1.2"]
+      origin_read_timeout = 30
+      origin_keepalive_timeout = 5
+    }
+  }
+
+  origin {
+    domain_name = "${aws_s3_bucket.landing_page_bucket.bucket}.s3-website-${var.region}.amazonaws.com"
     origin_id   = local.s3_origin_id
 
-    // The custom_origin_config is for the website endpoint settings configured via the AWS Console.
-    // https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_CustomOriginConfig.html
     custom_origin_config {
       http_port              = 80
       https_port             = 443
@@ -70,7 +83,7 @@ resource "aws_cloudfront_distribution" "static_site_distribution" {
       }
     }
 
-    viewer_protocol_policy = "redirect-to-https"
+    viewer_protocol_policy = "https-only"
     min_ttl                = 0
     default_ttl            = 3600
     max_ttl                = 86400
@@ -78,6 +91,20 @@ resource "aws_cloudfront_distribution" "static_site_distribution" {
   }
 
   price_class = "PriceClass_All"
+
+  ordered_cache_behavior {
+    path_pattern     = "/api/*"
+    allowed_methods  = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
+    cached_methods   = ["GET", "HEAD"]
+    target_origin_id = local.api_gw_origin_id
+    cache_policy_id  = "658327ea-f89d-4fab-a63d-7e88639e58f6" # CachingOptimized
+
+    min_ttl                = 0
+    default_ttl            = 3600
+    max_ttl                = 86400
+    compress               = true
+    viewer_protocol_policy = "redirect-to-https"
+  }
 
   restrictions {
     geo_restriction {
@@ -89,7 +116,6 @@ resource "aws_cloudfront_distribution" "static_site_distribution" {
     Environment = var.environment
   }
 
-  // The viewer_certificate is for ssl certificate settings configured via the AWS Console.
   viewer_certificate {
     cloudfront_default_certificate = false
     ssl_support_method  = "sni-only"
